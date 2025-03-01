@@ -1,13 +1,19 @@
 <div class="container">
-  <div class="card">
-    <h1 class="card-header">Hello!</h1>
-
-    <div class="card-body">
-      <p>bla bla</p>
-    </div>
-  </div>
-
   <div class="card mt-5">
-    <div class="card-body"><%CHART%></div>
+    <h1 class="card-header">Monthly Spending</h1>
+    <div class="card-body">
+      <table class="sortable table table-hover">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Receipts</th>
+            <th>Total 💸</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%TABLE_ROWS%>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

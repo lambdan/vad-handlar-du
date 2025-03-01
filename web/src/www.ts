@@ -39,10 +39,36 @@ export class www {
       join(__dirname, "../static/frontpage.html"),
       "utf-8"
     );
-    //html = html.replace("<%CHART%>", STATICS.totals.getChart());
-    let table = "";
 
-    html = html.replace("<%CHART%>", table);
+    let TR = "";
+
+    // Fetch all receipts, and group them by month
+    const receipts = await STATICS.pg.fetchReceipts();
+    receipts.reverse();
+    const groupedReceipts = new Map<string, Receipt[]>();
+    for (const r of receipts) {
+      const receipt = await Receipt.fromDB(r);
+      const year = receipt.date.toISOString().split("-")[0];
+      const month = receipt.date.toISOString().split("-")[1];
+      const ym = `${year}-${month}`;
+      if (!groupedReceipts.has(ym)) {
+        groupedReceipts.set(ym, []);
+      }
+      groupedReceipts.get(ym)!.push(receipt);
+    }
+
+    for (const [ym, receipts] of groupedReceipts) {
+      TR += `<tr>`;
+      TR += `<td>${ym}</td>`;
+      TR += `<td>${receipts.length}</td>`;
+      let total = 0;
+      for (const r of receipts) {
+        total += r.total;
+      }
+      TR += `<td>${total.toFixed(2)}</td>`;
+    }
+
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
     return await this.constructHTML(html);
   }
 
