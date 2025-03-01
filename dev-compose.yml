@@ -1,0 +1,19 @@
+version: "3.7"
+name: groceries
+
+volumes:
+  groceries-postgres:
+    external: true
+
+services:
+  postgres:
+    image: postgres:17.2
+    restart: always
+    volumes:
+      - groceries-postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: groceries
+      POSTGRES_PASSWORD: groceries
+      POSTGRES_DB: groceries
+    ports:
+      - 5432:5432

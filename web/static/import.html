@@ -1,0 +1,21 @@
+<div class="container">
+  <div class="card">
+    <h1 class="card-header">Import</h1>
+
+    <div class="card-body">
+      <p>Paste JSON here:</p>
+      <form
+        action="/import"
+        method="post"
+        enctype="application/json"
+        onsubmit="event => {
+        // Necessary to strip out newlines and tabs and such... 
+        this.json.value = JSON.stringify(JSON.parse(this.json.value));
+      }"
+      >
+        <textarea name="json" class="form-control" rows="10"></textarea>
+        <button type="submit" class="btn btn-primary mt-3">Import</button>
+      </form>
+    </div>
+  </div>
+</div>
