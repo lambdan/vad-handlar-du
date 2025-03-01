@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "target": "ES2021",
+        "module": "CommonJS",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "outDir": "dist",
+        "strict": true,
+        "strictNullChecks": true
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["node_modules"]
+}
