@@ -3,6 +3,18 @@
 import os, json, pypdf
 import sys, datetime
 
+if not len(sys.argv) == 2:
+    print("Usage: python coop_pdf-to-json.py <path to pdf root>")
+    sys.exit(1)
+
+pdfRoot = sys.argv[1]
+shouldRename = True
+
+if not os.path.isdir(pdfRoot):
+    print("Directory not found", pdfRoot)
+    sys.exit(1)
+
+
 def datetimeFromPDF(pdfPath) -> datetime:
     if not os.path.isfile(pdfPath):
         print("File not found", pdfPath)
@@ -63,23 +75,24 @@ def totalFromPDF(pdfPath) -> str:
     raise Exception("Could not get total from PDF")
 
 # fix filenames first
-for folder, subs, files in os.walk("."):
-    for filename in files:
-        if filename.endswith(".pdf"):
-            fullpath = os.path.join(folder, filename)
-            dt = datetimeFromPDF(fullpath)
-            butik = butikFromPDF(fullpath)
-            nr = kvittoNrFromPDF(fullpath)
+if shouldRename:
+    for folder, subs, files in os.walk(pdfRoot):
+        for filename in files:
+            if filename.endswith(".pdf"):
+                fullpath = os.path.join(folder, filename)
+                dt = datetimeFromPDF(fullpath)
+                butik = butikFromPDF(fullpath)
+                nr = kvittoNrFromPDF(fullpath)
 
-            newname = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}_{butik}_{nr}.pdf"
-            if newname != filename:
-                print("Renaming:", fullpath, "-->", newname)
-                os.rename(fullpath, os.path.join(folder, newname))
+                newname = f"{dt.strftime('%Y-%m-%d_%H-%M-%S')}_{butik}_{nr}.pdf"
+                if newname != filename:
+                    print("Renaming:", fullpath, "-->", newname)
+                    os.rename(fullpath, os.path.join(folder, newname))
 
 
 visits = []
 unhandled = []
-for folder, subs, files in os.walk("."):
+for folder, subs, files in os.walk(pdfRoot):
     subs.sort()
     for filename in sorted(files):
         if filename.endswith(".pdf"):
@@ -125,11 +138,11 @@ for folder, subs, files in os.walk("."):
 
 
             visit = {
+                "id": nr,
                 "datetime": dt,
                 "store": butik,
-                "nr": nr,
+                "products": [],
                 "total": total,
-                "varor": [],
                 "sourcePdf": fullpath
             }
             
@@ -157,7 +170,7 @@ for folder, subs, files in os.walk("."):
                     unit = "KG"
                 else:
                     raise Exception("Unknown unit", unit, fullpath)
-                visit["varor"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": totalPrice, "unitPrice": unitPrice})
+                visit["products"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": totalPrice, "unitPrice": unitPrice})
             visits.append(visit)
 
 
