@@ -81,12 +81,12 @@ export class Postgres {
     );
   }
 
-  async importVisit(visit: VisitImport) {
+  async importVisit(visit: VisitImport, replace: boolean) {
     if (!this.postgresClient) {
       await this.connect();
     }
 
-    console.log("Inserting", visit);
+    //console.log("Inserting", visit);
 
     let storeInDB = await this.fetchStoreByName(visit.store);
     if (!storeInDB) {
@@ -96,6 +96,10 @@ export class Postgres {
 
     let receiptInDB = await this.fetchReceiptByID(visit.id);
     if (receiptInDB) {
+      if (!replace) {
+        console.log("Already exists, skipping");
+        return;
+      }
       await this.query("DELETE FROM receipts WHERE id = $1", [visit.id]);
     }
 

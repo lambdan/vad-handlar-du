@@ -11,9 +11,15 @@
         onsubmit="event => {
         // Necessary to strip out newlines and tabs and such... 
         this.json.value = JSON.stringify(JSON.parse(this.json.value));
+
       }"
       >
         <textarea name="json" class="form-control" rows="10"></textarea>
+        <input type="checkbox" name="replace" id="replace" />
+        <label for="replace"
+          >Replace existing receipts (enable if you are re-importing)</label
+        >
+        <br />
         <button type="submit" class="btn btn-primary mt-3">Import</button>
       </form>
     </div>

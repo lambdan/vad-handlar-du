@@ -76,23 +76,26 @@ STATICS.fastify.get("/import", async (request, reply) => {
     .send(cacheAndReturn(request.url, await STATICS.web.importPage()));
 });
 
-STATICS.fastify.post<{ Body: { json: string } }>(
+STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
   "/import",
   async (request, reply) => {
-    const { json } = request.body;
+    const { json, replace } = request.body;
     let c: VisitImport[];
 
     try {
       c = JSON.parse(json);
     } catch (error) {
-      reply.code(400).send("Invalid JSON");
+      reply
+        .code(400)
+        .type("text/html")
+        .send(`JSON parse failed.<br><br>${JSON.stringify(request.body)}`);
       return;
     }
 
     for (const visit of c) {
-      await STATICS.pg.importVisit(visit);
+      await STATICS.pg.importVisit(visit, replace);
     }
-    reply.send("OK, imported " + c.length + " visits");
+    reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
   }
 );
 
