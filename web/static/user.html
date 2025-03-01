@@ -1,0 +1,63 @@
+<div class="container">
+  <div class="card">
+    <h1 class="card-header text-center"><%USERNAME%></h1>
+    <div class="card-body">
+      <div class="row mt-4">
+        <div class="col-lg-2">
+          <img
+            src="<%AVATAR_URL%>"
+            class="img-thumbnail img-fluid rounded-circle"
+          />
+        </div>
+        <div class="col">
+          <div class="mx-auto">
+            <ul>
+              <li>
+                <b>First session:</b>
+                <%FIRST_SESSION%>
+              </li>
+              <li><b>Last active:</b> <%LAST_ACTIVE%></li>
+
+              <li><b>Active days:</b> <%ACTIVE_DAYS%></li>
+              <li><b>Longest streak:</b> <%MOST_CONSECUTIVE_DAYS%></li>
+              <li><b>Longest break:</b> <%LONGEST_BREAK%></li>
+            </ul>
+          </div>
+        </div>
+        <div class="col">
+          <div class="mx-auto">
+            <ul>
+              <li><b>Games played:</b> <%GAMES_PLAYED%></li>
+              <li><b>Total playtime</b>: <%TOTAL_PLAYTIME%></li>
+              <li><b>Average playtime/game:</b> <%AVERAGE_PLAYTIME_GAME%></li>
+              <li><b>Total sessions:</b> <%SESSIONS%></li>
+              <li><b>Average sessions/game:</b> <%AVERAGE_SESSIONS_GAME%></li>
+              <li><b>Average session length:</b> <%AVERAGE_SESSION_LENGTH%></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col">
+          <div class="table-responsive">
+            <table class="table sortable table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">Game</th>
+                  <th scope="col">Time played</th>
+                  <th scope="col">Sessions</th>
+                  <th scope="col">Longest session</th>
+                  <th scope="col">Last played</th>
+                </tr>
+              </thead>
+              <tbody>
+                <%TABLE_ROWS%>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4"><%CHART%></div>
+    </div>
+  </div>
+</div>

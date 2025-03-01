@@ -69,4 +69,12 @@ export class Product {
     }
     return highest;
   }
+
+  totalSpent(): number {
+    let total = 0;
+    for (const p of this.purchases) {
+      total += p.total_price;
+    }
+    return total;
+  }
 }

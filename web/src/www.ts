@@ -69,12 +69,21 @@ export class www {
 
     let TR = "";
     const products = await STATICS.pg.fetchProducts();
+    let totalSpent = 0;
+    let totalPurchased = 0;
+    // Sort by recency
+
     for (const p of products) {
       const product = await Product.fromDB(p);
+
+      totalSpent += product.totalSpent();
+      totalPurchased += product.amountPurchased();
+
       TR += `<tr>`;
       TR += `<td>${product.name}</td>`;
       TR += `<td>${product.timesPurchased()}</td>`;
 
+      // Amount (decimals for weights)
       if (product.unit == "KG") {
         TR += `<td>${product.amountPurchased().toFixed(1)} ${
           product.unit
@@ -83,13 +92,18 @@ export class www {
         TR += `<td>${product.amountPurchased()} ${product.unit}</td>`;
       }
 
+      TR += `<td>${product.totalSpent().toFixed(0)}</td>`;
+
       TR += `<td sorttable_customkey="${product
         .lastPurchased()
-        .getTime()}">${product.lastPurchased().toUTCString()}</td>`;
+        .getTime()}">${product.lastPurchased().toISOString()}</td>`;
       TR += `<td >${product.lowestPrice()}</td>`;
       TR += `<td>${product.highestPrice()}</td>`;
     }
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TOTAL_PURCHASES%>", totalPurchased.toFixed(0));
+    html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(0));
+    html = html.replaceAll("<%PRODUCT_COUNT%>", products.length.toString());
 
     return await this.constructHTML(html);
   }
