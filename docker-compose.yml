@@ -3,7 +3,6 @@ name: groceries
 
 volumes:
   groceries-postgres:
-    external: true
 
 services:
   postgres:
@@ -17,3 +16,16 @@ services:
       POSTGRES_DB: groceries
     ports:
       - 5432:5432
+
+  web:
+    image: davidsilverlind/vad-handlar-du
+    restart: always
+    init: true
+    ports:
+      - 8000:8000
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: groceries
+      POSTGRES_PASS: groceries
+      POSTGRES_DB: groceries
