@@ -4,6 +4,7 @@ import { Product } from "./product";
 
 import { STATICS } from ".";
 import { Logger } from "./logger";
+import { Receipt } from "./receipt";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -69,6 +70,7 @@ export class www {
 
     let TR = "";
     const products = await STATICS.pg.fetchProducts();
+    products.reverse();
     let totalSpent = 0;
     let totalPurchased = 0;
     // Sort by recency
@@ -92,7 +94,7 @@ export class www {
         TR += `<td>${product.amountPurchased()} ${product.unit}</td>`;
       }
 
-      TR += `<td>${product.totalSpent().toFixed(0)}</td>`;
+      TR += `<td>${product.totalSpent().toFixed(2)}</td>`;
 
       TR += `<td sorttable_customkey="${product
         .lastPurchased()
@@ -102,8 +104,36 @@ export class www {
     }
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%TOTAL_PURCHASES%>", totalPurchased.toFixed(0));
-    html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(0));
+    html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(2));
     html = html.replaceAll("<%PRODUCT_COUNT%>", products.length.toString());
+
+    return await this.constructHTML(html);
+  }
+
+  async receiptsPage(): Promise<string> {
+    let html = await readFile(
+      join(__dirname, "../static/receipts.html"),
+      "utf-8"
+    );
+
+    let TR = "";
+    const receipts = await STATICS.pg.fetchReceipts();
+    receipts.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
+    });
+
+    for (const r of receipts) {
+      const receipt = await Receipt.fromDB(r);
+
+      TR += `<tr>`;
+      TR += `<td>${receipt.id}</td>`;
+      TR += `<td sorttable_customkey="${receipt.date.getTime()}">${receipt.date.toISOString()}</td>`;
+      TR += `<td>${receipt.store?.name}</td>`;
+      TR += `<td>${receipt.total.toFixed(0)}</td>`;
+    }
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+
+    html = html.replaceAll("<%RECEIPT_COUNT%>", receipts.length.toString());
 
     return await this.constructHTML(html);
   }

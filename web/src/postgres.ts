@@ -13,7 +13,7 @@ import {
   DBPurchase,
   DBReceipt,
   DBStore,
-  VisitImport,
+  ReceiptImport,
 } from "./models";
 
 export class Postgres {
@@ -81,38 +81,42 @@ export class Postgres {
     );
   }
 
-  async importVisit(visit: VisitImport, replace: boolean) {
+  async importReceipt(receipt: ReceiptImport, replace: boolean) {
     if (!this.postgresClient) {
       await this.connect();
     }
 
     //console.log("Inserting", visit);
 
-    let storeInDB = await this.fetchStoreByName(visit.store);
-    if (!storeInDB) {
-      await this.insertStore(visit.store);
-      storeInDB = await this.fetchStoreByName(visit.store);
-    }
-
-    let receiptInDB = await this.fetchReceiptByID(visit.id);
+    let receiptInDB = await this.fetchReceiptByID(receipt.id);
     if (receiptInDB) {
       if (!replace) {
         console.log("Already exists, skipping");
         return;
       }
-      await this.query("DELETE FROM receipts WHERE id = $1", [visit.id]);
+      await this.query("DELETE FROM receipts WHERE id = $1", [receipt.id]);
+      await this.query("DELETE FROM purchases WHERE receipt_id = $1", [
+        receipt.id,
+      ]);
+      
+    }
+
+    let storeInDB = await this.fetchStoreByName(receipt.store);
+    if (!storeInDB) {
+      await this.insertStore(receipt.store);
+      storeInDB = await this.fetchStoreByName(receipt.store);
     }
 
     await this.insertReceipt({
-      id: visit.id,
+      id: receipt.id,
       imported: new Date(),
-      date: new Date(visit.datetime),
+      date: new Date(receipt.datetime),
       store_id: storeInDB!.id,
-      source_pdf: visit.sourcePdf,
-      total: visit.total,
+      source_pdf: receipt.sourcePdf,
+      total: receipt.total,
     });
 
-    for (const product of visit.products) {
+    for (const product of receipt.products) {
       let productInDB = await this.fetchProductByName(product.name);
       if (!productInDB) {
         await this.insertProduct(product.name, product.unit);
@@ -121,12 +125,12 @@ export class Postgres {
 
       await this.insertPurchase({
         id: "",
-        receipt_id: visit.id,
+        receipt_id: receipt.id,
         product_id: productInDB!.id,
         amount: product.amount,
         unit_price: product.unitPrice,
         total_price: product.totalPrice,
-        datetime: new Date(visit.datetime),
+        datetime: new Date(receipt.datetime),
       });
     }
   }
@@ -154,6 +158,17 @@ export class Postgres {
     return null;
   }
 
+  async fetchStoreByID(storeID: string): Promise<DBStore | null> {
+    const q = await this.query("SELECT * FROM stores WHERE id = $1", [storeID]);
+    if (q.rows.length > 0) {
+      return {
+        id: q.rows[0][0] as string,
+        name: q.rows[0][1] as string,
+      } as DBStore;
+    }
+    return null;
+  }
+
   async insertReceipt(receipt: DBReceipt): Promise<ResultRecord<any>> {
     if (!this.postgresClient) {
       await this.connect();
@@ -170,6 +185,21 @@ export class Postgres {
       ]
     );
     return q;
+  }
+
+  async fetchReceipts(): Promise<DBReceipt[]> {
+    const q = await this.query("SELECT * FROM receipts");
+    return q.rows.map(
+      (r) =>
+        ({
+          id: r[0] as string,
+          imported: new Date(r[1]),
+          date: new Date(r[2]),
+          store_id: r[3] as string,
+          source_pdf: r[4] as string,
+          total: r[5] as number,
+        } as DBReceipt)
+    );
   }
 
   async fetchReceiptByID(receiptID: string): Promise<DBReceipt | null> {

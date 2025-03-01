@@ -1,4 +1,4 @@
-export interface VisitImport {
+export interface ReceiptImport {
   datetime: string;
   id: string;
   store: string;

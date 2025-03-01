@@ -2,7 +2,7 @@ import Fastify from "fastify";
 import { Postgres } from "./postgres";
 import { Logger } from "./logger";
 import { www } from "./www";
-import { VisitImport } from "./models";
+import { ReceiptImport } from "./models";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -70,6 +70,17 @@ STATICS.fastify.get("/products", async (request, reply) => {
     .send(cacheAndReturn(request.url, await STATICS.web.productsPage()));
 });
 
+STATICS.fastify.get("/receipts", async (request, reply) => {
+  const cache = getCache(request.url);
+  if (cache) {
+    return reply.type("text/html").send(cache);
+  }
+
+  reply
+    .type("text/html")
+    .send(cacheAndReturn(request.url, await STATICS.web.receiptsPage()));
+});
+
 STATICS.fastify.get("/import", async (request, reply) => {
   reply
     .type("text/html")
@@ -80,7 +91,7 @@ STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
   "/import",
   async (request, reply) => {
     const { json, replace } = request.body;
-    let c: VisitImport[];
+    let c: ReceiptImport[];
 
     try {
       c = JSON.parse(json);
@@ -93,7 +104,7 @@ STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
     }
 
     for (const visit of c) {
-      await STATICS.pg.importVisit(visit, replace);
+      await STATICS.pg.importReceipt(visit, replace);
     }
     reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
   }
