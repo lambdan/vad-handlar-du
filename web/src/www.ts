@@ -44,7 +44,12 @@ export class www {
 
     // Fetch all receipts, and group them by month
     const receipts = await STATICS.pg.fetchReceipts();
-    receipts.reverse();
+    // Sort by date (newest first)
+
+    receipts.sort((a, b) => {
+      return b.date.getTime() - a.date.getTime();
+    });
+
     const groupedReceipts = new Map<string, Receipt[]>();
     for (const r of receipts) {
       const receipt = await Receipt.fromDB(r);
@@ -142,6 +147,7 @@ export class www {
       "utf-8"
     );
 
+    let totalSpent = 0;
     let TR = "";
     const receipts = await STATICS.pg.fetchReceipts();
     receipts.sort((a, b) => {
@@ -155,9 +161,13 @@ export class www {
       TR += `<td><a href="/receipt/${receipt.id}">${receipt.id}</a></td>`;
       TR += `<td sorttable_customkey="${receipt.date.getTime()}">${receipt.date.toISOString()}</td>`;
       TR += `<td>${receipt.store?.name}</td>`;
-      TR += `<td>${receipt.total.toFixed(0)}</td>`;
+      TR += `<td>${receipt.total.toFixed(2)}</td>`;
+
+      totalSpent += receipt.total;
     }
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
+
+    html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(2));
 
     html = html.replaceAll("<%RECEIPT_COUNT%>", receipts.length.toString());
 
