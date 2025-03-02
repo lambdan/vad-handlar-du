@@ -10,7 +10,7 @@ export interface ReceiptImport {
     unit: string;
     unitPrice: number;
   }[];
-  sourcePdf: string;
+  source_file_id: string;
 }
 
 export interface DBStore {
@@ -23,7 +23,7 @@ export interface DBReceipt {
   imported: Date;
   date: Date;
   store_id: string;
-  source_pdf: string;
+  source_file_id: string;
   total: number;
 }
 

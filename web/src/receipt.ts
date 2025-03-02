@@ -26,7 +26,7 @@ export class Receipt {
   imported: Date;
   date: Date;
   store: Store | null;
-  sourcePdf: string;
+  source_file_id: string;
   total: number;
   constructor(
     id: string,
@@ -40,7 +40,7 @@ export class Receipt {
     this.imported = imported;
     this.date = date;
     this.store = store;
-    this.sourcePdf = sourcePdf;
+    this.source_file_id = sourcePdf;
     this.total = total;
   }
 
@@ -55,7 +55,7 @@ export class Receipt {
       db.imported,
       db.date,
       store,
-      db.source_pdf,
+      db.source_file_id,
       db.total
     );
     return r;
@@ -122,6 +122,8 @@ export class Receipt {
       });
     });
 
-    return JSON.parse(json);
+    const parsed = JSON.parse(json) as ReceiptImport;
+    parsed.source_file_id = src.id;
+    return parsed;
   }
 }

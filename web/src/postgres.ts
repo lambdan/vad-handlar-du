@@ -58,7 +58,7 @@ export class Postgres {
       imported TIMESTAMP,
       date TIMESTAMP,
       store_id TEXT,
-      source_pdf TEXT,
+      source_file_id TEXT,
       total FLOAT8
     )`
     );
@@ -125,7 +125,7 @@ export class Postgres {
       imported: new Date(),
       date: new Date(receipt.datetime),
       store_id: storeInDB!.id,
-      source_pdf: receipt.sourcePdf,
+      source_file_id: receipt.source_file_id,
       total: receipt.total,
     });
 
@@ -187,13 +187,13 @@ export class Postgres {
       await this.connect();
     }
     const q = await this.query(
-      "INSERT INTO receipts (id, imported, date, store_id, source_pdf, total) VALUES ($1, to_timestamp($2), to_timestamp($3), $4, $5, $6)",
+      "INSERT INTO receipts (id, imported, date, store_id, source_file_id, total) VALUES ($1, to_timestamp($2), to_timestamp($3), $4, $5, $6)",
       [
         receipt.id,
         receipt.imported.getTime() / 1000,
         receipt.date.getTime() / 1000,
         receipt.store_id,
-        receipt.source_pdf,
+        receipt.source_file_id,
         receipt.total,
       ]
     );
@@ -209,7 +209,7 @@ export class Postgres {
           imported: new Date(r[1]),
           date: new Date(r[2]),
           store_id: r[3] as string,
-          source_pdf: r[4] as string,
+          source_file_id: r[4] as string,
           total: r[5] as number,
         } as DBReceipt)
     );
@@ -225,7 +225,7 @@ export class Postgres {
         imported: new Date(q.rows[0][1]),
         date: new Date(q.rows[0][2]),
         store_id: q.rows[0][3] as string,
-        source_pdf: q.rows[0][4] as string,
+        source_file_id: q.rows[0][4] as string,
         total: q.rows[0][5] as number,
       } as DBReceipt;
     }
