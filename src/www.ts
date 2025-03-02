@@ -1,7 +1,6 @@
 import { join } from "path";
 import { readFile } from "fs/promises";
 import { Product } from "./product";
-
 import { STATICS } from ".";
 import { Logger } from "./logger";
 import { Receipt } from "./receipt";

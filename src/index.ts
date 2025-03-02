@@ -1,18 +1,12 @@
-import Fastify, { FastifyRequest } from "fastify";
+import Fastify from "fastify";
 import "@fastify/multipart";
 import { Postgres } from "./postgres";
 import { Logger } from "./logger";
 import { www } from "./www";
-import { ReceiptImport, ReceiptSourceFileType } from "./models";
-import { MultipartFile } from "@fastify/multipart";
+import { ReceiptSourceFileType } from "./models";
 import { md5FromBuffer } from "./utils";
 import { Receipt } from "./receipt";
-import { pipeline } from "stream";
 import fs from "fs";
-import path from "path";
-import os from "os";
-
-const PROD = process.env.NODE_ENV === "production";
 
 export class STATICS {
   static fastify = Fastify({ logger: true });
@@ -29,71 +23,23 @@ export class STATICS {
 STATICS.fastify.register(require("@fastify/formbody"));
 STATICS.fastify.register(require("@fastify/multipart"));
 
-const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
-const cache = new Map<string, any>();
 const logger = new Logger("Index");
-
-function getCache(url: string): string | null {
-  if (!PROD) {
-    // annoying when developing
-    return null;
-  }
-  if (!cache.has(url)) {
-    logger.log(url, "is not cached :(");
-
-    return null;
-  }
-  logger.log(url, "is cached!");
-  return cache.get(url);
-}
-
-function cacheAndReturn(url: string, data: any): any {
-  cache.set(url, data);
-  setTimeout(() => {
-    cache.delete(url);
-    logger.warn(url, "cache expired");
-  }, cacheAge);
-  return data;
-}
 
 // Routes
 STATICS.fastify.get("/", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.frontPage()));
+  reply.type("text/html").send(await STATICS.web.frontPage());
 });
 
 STATICS.fastify.get("/products", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.productsPage()));
+  reply.type("text/html").send(await STATICS.web.productsPage());
 });
 
 STATICS.fastify.get("/receipts", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.receiptsPage()));
+  reply.type("text/html").send(await STATICS.web.receiptsPage());
 });
 
 STATICS.fastify.get("/import", async (request, reply) => {
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.importPage()));
+  reply.type("text/html").send(await STATICS.web.importPage());
 });
 
 // POST route to get uploaded PDF file in form
@@ -149,14 +95,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
       return;
     }
 
-    const cache = getCache(request.url);
-    if (cache) {
-      return reply.type("text/html").send(cache);
-    }
-
-    reply
-      .type("text/html")
-      .send(cacheAndReturn(request.url, await STATICS.web.receiptPage(id)));
+    reply.type("text/html").send(await STATICS.web.receiptPage(id));
   }
 );
 
