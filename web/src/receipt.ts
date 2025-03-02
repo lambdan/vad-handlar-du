@@ -102,7 +102,7 @@ export class Receipt {
 
     let json = "";
 
-    const proc = spawn("python3", ["pdf_parse.py", pdf_path]);
+    const proc = spawn("python3", ["pdf_parse_coop_v1.py", pdf_path]);
 
     await new Promise((resolve, reject) => {
       const pLog = new Logger("pdf_parse.py");
