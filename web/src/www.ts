@@ -152,7 +152,7 @@ export class www {
       const receipt = await Receipt.fromDB(r);
 
       TR += `<tr>`;
-      TR += `<td>${receipt.id}</td>`;
+      TR += `<td><a href="/receipt/${receipt.id}">${receipt.id}</a></td>`;
       TR += `<td sorttable_customkey="${receipt.date.getTime()}">${receipt.date.toISOString()}</td>`;
       TR += `<td>${receipt.store?.name}</td>`;
       TR += `<td>${receipt.total.toFixed(0)}</td>`;
@@ -160,6 +160,51 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
 
     html = html.replaceAll("<%RECEIPT_COUNT%>", receipts.length.toString());
+
+    return await this.constructHTML(html);
+  }
+
+  async receiptPage(id: string): Promise<string> {
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    if (!receipt) {
+      return await this.errorPage("Receipt not found");
+    }
+
+    let html = await readFile(
+      join(__dirname, "../static/receipt.html"),
+      "utf-8"
+    );
+
+    const store = await STATICS.pg.fetchStoreByID(receipt.store_id);
+
+    html = html.replaceAll("<%RECEIPT_ID%>", receipt.id);
+    html = html.replaceAll("<%SOURCE_FILE_ID%>", receipt.source_file_id);
+    html = html.replaceAll("<%DATE%>", receipt.date.toUTCString());
+    html = html.replaceAll("<%IMPORTED%>", receipt.imported.toUTCString());
+    html = html.replaceAll("<%STORE%>", store?.name || "Unknown");
+
+    const purchases = await STATICS.pg.fetchPurchasesByReceiptID(receipt.id);
+
+    let TR = "";
+
+    for (const p of purchases) {
+      const product = await STATICS.pg.fetchProductByID(p.product_id);
+      if (!product) {
+        this.logger.error("Product not found", p.product_id);
+        continue;
+      }
+
+      TR += "<tr>";
+      TR += `<td>${product.name}</td>`;
+      TR += `<td>${p.amount} ${product.unit}</td>`;
+      TR += `<td>${p.unit_price.toFixed(2)}</td>`;
+      TR += `<td>${p.total_price.toFixed(2)}</td>`;
+      TR += "</tr>";
+    }
+
+    html = html.replaceAll("<%TABLE_ROWS%>", TR);
+
+    html = html.replaceAll("<%TOTAL%>", receipt.total.toFixed(2));
 
     return await this.constructHTML(html);
   }

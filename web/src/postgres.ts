@@ -246,6 +246,20 @@ export class Postgres {
     return q;
   }
 
+  async fetchProductByID(productID: string): Promise<DBProduct | null> {
+    const q = await this.query("SELECT * FROM products WHERE id = $1", [
+      productID,
+    ]);
+    if (q.rows.length > 0) {
+      return {
+        id: q.rows[0][0] as string,
+        name: q.rows[0][1] as string,
+        unit: q.rows[0][2] as string,
+      } as DBProduct;
+    }
+    return null;
+  }
+
   async fetchProducts(): Promise<DBProduct[]> {
     const q = await this.query("SELECT * FROM products");
     const prods = q.rows.map(

@@ -157,6 +157,28 @@ STATICS.fastify.post("/upload_pdf", async (request, reply) => {
   reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
 });
 
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/receipt/:id",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    if (!receipt) {
+      reply.code(404).send("Receipt not found");
+      return;
+    }
+
+    const cache = getCache(request.url);
+    if (cache) {
+      return reply.type("text/html").send(cache);
+    }
+
+    reply
+      .type("text/html")
+      .send(cacheAndReturn(request.url, await STATICS.web.receiptPage(id)));
+  }
+);
+
 STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },
   (err, address) => {
