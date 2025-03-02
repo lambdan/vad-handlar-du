@@ -129,7 +129,7 @@ export class www {
 
       TR += `<td sorttable_customkey="${product
         .lastPurchased()
-        .getTime()}">${product.lastPurchased().toISOString()}</td>`;
+        .getTime()}">${product.lastPurchased().toUTCString()}</td>`;
       TR += `<td >${product.lowestPrice()}</td>`;
       TR += `<td>${product.highestPrice()}</td>`;
     }
@@ -159,7 +159,7 @@ export class www {
 
       TR += `<tr>`;
       TR += `<td><a href="/receipt/${receipt.id}">${receipt.id}</a></td>`;
-      TR += `<td sorttable_customkey="${receipt.date.getTime()}">${receipt.date.toISOString()}</td>`;
+      TR += `<td sorttable_customkey="${receipt.date.getTime()}">${receipt.date.toUTCString()}</td>`;
       TR += `<td>${receipt.store?.name}</td>`;
       TR += `<td>${receipt.total.toFixed(2)}</td>`;
 
