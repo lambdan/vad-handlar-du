@@ -99,15 +99,18 @@ export class www {
     );
 
     let TR = "";
-    const products = await STATICS.pg.fetchProducts();
-    products.reverse();
+    const dbProducts = await STATICS.pg.fetchProducts();
+    dbProducts.reverse();
     let totalSpent = 0;
     let totalPurchased = 0;
-    // Sort by recency
 
-    for (const p of products) {
-      const product = await Product.fromDB(p);
+    const products = await Promise.all(dbProducts.map((p) => Product.fromDB(p)));
 
+    products.sort((a, b) => {
+      return b.lastPurchased().getTime() - a.lastPurchased().getTime();
+    });
+
+    for (const product of products) {
       totalSpent += product.totalSpent();
       totalPurchased += product.amountPurchased();
 
@@ -135,7 +138,7 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%TOTAL_PURCHASES%>", totalPurchased.toFixed(0));
     html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(2));
-    html = html.replaceAll("<%PRODUCT_COUNT%>", products.length.toString());
+    html = html.replaceAll("<%PRODUCT_COUNT%>", dbProducts.length.toString());
 
     return await this.constructHTML(html);
   }
