@@ -1,6 +1,6 @@
 {
   "name": "vad-handlar-du",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "main": "dist/index.js",
   "scripts": {
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@fastify/formbody": "^8.0.2",
+    "@fastify/multipart": "^9.0.3",
     "fastify": "^5.2.1",
     "ts-postgres": "^2.0.4"
   }

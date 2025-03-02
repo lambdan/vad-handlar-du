@@ -1,5 +1,16 @@
 import { STATICS } from ".";
-import { DBProduct, DBPurchase, DBReceipt } from "./models";
+import {
+  DBReceipt,
+  DBReceiptSourceFile,
+  ReceiptImport,
+  ReceiptSourceFileType,
+} from "./models";
+import path from "path";
+import os from "os";
+import fs from "fs/promises";
+
+import { Logger } from "./logger";
+import { spawn } from "child_process";
 
 export class Store {
   id: string;
@@ -48,5 +59,69 @@ export class Receipt {
       db.total
     );
     return r;
+  }
+
+  static async insertFromSourceFile(
+    /** Source file ID */
+    id: string,
+    replace: boolean
+  ): Promise<Receipt> {
+    const src = await STATICS.pg.getReceiptSourceFileByID(id);
+    if (!src) {
+      throw new Error("Receipt not found");
+    }
+
+    let newReceipt: ReceiptImport | null = null;
+    switch (src.type) {
+      case ReceiptSourceFileType.PDF_COOP_V1:
+        newReceipt = await Receipt.fromCoopV1PDF(src);
+        break;
+      default:
+        throw new Error("Unsupported source file type");
+    }
+
+    if (!newReceipt) {
+      throw new Error("Failed to create receipt");
+    }
+
+    await STATICS.pg.importReceipt(newReceipt, replace);
+
+    const exists2 = await STATICS.pg.fetchReceiptByID(newReceipt.id);
+
+    if (!exists2) {
+      throw new Error("Failed to insert receipt");
+    }
+    return Receipt.fromDB(exists2);
+  }
+
+  static async fromCoopV1PDF(src: DBReceiptSourceFile): Promise<ReceiptImport> {
+    // Reconstruct PDF from base64 and send it to the Python script
+    const pdf = Buffer.from(src.base64, "base64");
+    const pdf_path = path.join(os.tmpdir(), src.id);
+    await fs.writeFile(pdf_path, pdf);
+
+    let json = "";
+
+    const proc = spawn("python3", ["pdf_parse.py", pdf_path]);
+
+    await new Promise((resolve, reject) => {
+      const pLog = new Logger("pdf_parse.py");
+      proc.stdout.on("data", (data) => {
+        pLog.log(data.toString());
+        json += data;
+      });
+      proc.stderr.on("data", (data) => {
+        pLog.error(data.toString());
+      });
+      proc.on("close", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python script exited with code ${code}`));
+        } else {
+          resolve(null);
+        }
+      });
+    });
+
+    return JSON.parse(json);
   }
 }

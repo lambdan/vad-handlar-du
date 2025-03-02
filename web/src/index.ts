@@ -1,8 +1,12 @@
-import Fastify from "fastify";
+import Fastify, { FastifyRequest } from "fastify";
+import "@fastify/multipart";
 import { Postgres } from "./postgres";
 import { Logger } from "./logger";
 import { www } from "./www";
-import { ReceiptImport } from "./models";
+import { ReceiptImport, ReceiptSourceFileType } from "./models";
+import { MultipartFile } from "@fastify/multipart";
+import { md5FromBuffer } from "./utils";
+import { Receipt } from "./receipt";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -19,6 +23,7 @@ export class STATICS {
 }
 
 STATICS.fastify.register(require("@fastify/formbody"));
+STATICS.fastify.register(require("@fastify/multipart"));
 
 const cacheAge = +(process.env.CACHE_AGE || 60 * 1000);
 const cache = new Map<string, any>();
@@ -87,6 +92,7 @@ STATICS.fastify.get("/import", async (request, reply) => {
     .send(cacheAndReturn(request.url, await STATICS.web.importPage()));
 });
 
+/** Route for JSON uploads */
 STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
   "/import",
   async (request, reply) => {
@@ -110,97 +116,46 @@ STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
   }
 );
 
-/* Games */
-
-/*
-STATICS.fastify.get("/game/:id", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-  const { id } = request.params as { id: string };
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.gamePage(+id)));
-});
-
-STATICS.fastify.get("/game/:id/chartData", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.send(cache);
+// POST route to get uploaded PDF file in form
+STATICS.fastify.post("/upload_pdf", async (request, reply) => {
+  const parts = request.parts();
+  let receiptType: ReceiptSourceFileType | null = null;
+  const files: MultipartFile[] = [];
+  for await (const part of parts) {
+    if (part.type === "file") {
+      files.push(part);
+    } else if (part.type === "field" && part.fieldname === "receiptType") {
+      receiptType = part.value as ReceiptSourceFileType;
+    } else {
+      logger.error("Unknown part type", part);
+    }
   }
 
-  const { id } = request.params as { id: number };
-  const game = await STATICS.pg.fetchGame(id);
-  if (!game) {
-    reply.code(400).send("Could not get game");
+  if (!receiptType) {
+    reply.code(400).send("No type specified");
     return;
   }
 
-  reply.send(cacheAndReturn(request.url, await game.chartData()));
+  for (const f of files) {
+    const buffer = f.file.read();
+    const md5 = await md5FromBuffer(buffer);
+
+    let exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
+    if (!exists) {
+      logger.log("Inserting new receipt source file");
+      const b64: string = buffer.toString("base64");
+      await STATICS.pg.insertReceiptSourceFile(receiptType, md5, b64);
+      exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
+    }
+    if (!exists) {
+      return reply.code(500).send("Failed to upload receipt");
+    }
+
+    await Receipt.insertFromSourceFile(exists.id, true);
+  }
+
+  reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
 });
-
-STATICS.fastify.get("/games", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.gamesPage()));
-}); 
-
-/* Users */
-/*
-STATICS.fastify.get("/users", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-
-  reply
-    .type("text/html")
-    .send(cacheAndReturn(request.url, await STATICS.web.usersPage()));
-});
-
-STATICS.fastify.get("/user/:id", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.type("text/html").send(cache);
-  }
-  const { id } = request.params as { id: string };
-  const html = await STATICS.web.userPage(id);
-
-  reply.type("text/html").send(cacheAndReturn(request.url, html));
-});
-
-STATICS.fastify.get("/user/:id/chartData", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.send(cache);
-  }
-  const { id } = request.params as { id: string };
-  const user = await STATICS.pg.fetchUser(id);
-  if (!user) {
-    reply.code(400).send("Could not get user");
-    return;
-  }
-  reply.send(cacheAndReturn(request.url, await user.chartData()));
-});
-
-/* Totals */
-/*
-STATICS.fastify.get("/totals/chartData", async (request, reply) => {
-  const cache = getCache(request.url);
-  if (cache) {
-    return reply.send(cache);
-  }
-  reply.send(cacheAndReturn(request.url, await STATICS.totals.chartData()));
-});
-*/
-// end of routes
 
 STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },

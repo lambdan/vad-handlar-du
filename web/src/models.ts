@@ -42,3 +42,16 @@ export interface DBPurchase {
   total_price: number;
   datetime: Date;
 }
+
+export enum ReceiptSourceFileType {
+  PDF_COOP_V1 = "PDF_COOP_V1",
+}
+
+export interface DBReceiptSourceFile {
+  /** PDF etc */
+  id: string;
+  type: ReceiptSourceFileType;
+  md5: string;
+  base64: string;
+  uploaded: Date;
+}

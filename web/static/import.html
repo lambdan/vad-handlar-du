@@ -3,6 +3,22 @@
     <h1 class="card-header">Import</h1>
 
     <div class="card-body">
+      <h1>PDF Upload</h1>
+      <p>Upload a PDF file here:</p>
+      <form action="/upload_pdf" method="post" enctype="multipart/form-data">
+        <input type="file" name="pdf" class="form-control" />
+        <p>Receipt Type:</p>
+        <select name="receiptType" class="form-control">
+          <option value="PDF_COOP_V1" selected>Coop PDF V1</option>
+        </select>
+
+        <br />
+        <button type="submit" class="btn btn-primary mt-3">Upload</button>
+      </form>
+
+      <hr />
+
+      <h1>JSON</h1>
       <p>Paste JSON here:</p>
       <form
         action="/import"

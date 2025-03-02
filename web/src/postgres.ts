@@ -12,8 +12,10 @@ import {
   DBProduct,
   DBPurchase,
   DBReceipt,
+  DBReceiptSourceFile,
   DBStore,
   ReceiptImport,
+  ReceiptSourceFileType,
 } from "./models";
 
 export class Postgres {
@@ -79,6 +81,21 @@ export class Postgres {
       total_price FLOAT8,
       datetime TIMESTAMP)`
     );
+
+    await this.query(
+      `CREATE TABLE IF NOT EXISTS receipt_source_files (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      receiptType TEXT,
+      md5 TEXT,
+      base64 TEXT,
+      uploaded TIMESTAMP
+    )`
+    );
+  }
+
+  async deleteReceipt(id: string) {
+    await this.query("DELETE FROM receipts WHERE id = $1", [id]);
+    await this.query("DELETE FROM purchases WHERE receipt_id = $1", [id]);
   }
 
   async importReceipt(receipt: ReceiptImport, replace: boolean) {
@@ -94,11 +111,7 @@ export class Postgres {
         console.log("Already exists, skipping");
         return;
       }
-      await this.query("DELETE FROM receipts WHERE id = $1", [receipt.id]);
-      await this.query("DELETE FROM purchases WHERE receipt_id = $1", [
-        receipt.id,
-      ]);
-      
+      await this.deleteReceipt(receipt.id);
     }
 
     let storeInDB = await this.fetchStoreByName(receipt.store);
@@ -340,6 +353,59 @@ export class Postgres {
         total_price: q.rows[0][5] as number,
         datetime: new Date(q.rows[0][6]),
       } as DBPurchase;
+    }
+    return null;
+  }
+
+  async insertReceiptSourceFile(
+    receiptType: ReceiptSourceFileType,
+    md5: string,
+    base64: string
+  ): Promise<ResultRecord<any>> {
+    if (!this.postgresClient) {
+      await this.connect();
+    }
+    const q = await this.query(
+      "INSERT INTO receipt_source_files (receiptType, md5, base64, uploaded) VALUES ($1, $2, $3, to_timestamp($4))",
+      [receiptType, md5, base64, new Date().getTime() / 1000]
+    );
+    return q;
+  }
+
+  async getReceiptSourceFileByMD5(
+    md5: string
+  ): Promise<DBReceiptSourceFile | null> {
+    const q = await this.query(
+      "SELECT * FROM receipt_source_files WHERE md5 = $1",
+      [md5]
+    );
+    if (q.rows.length > 0) {
+      return {
+        id: q.rows[0][0] as string,
+        type: q.rows[0][1] as ReceiptSourceFileType,
+        md5: q.rows[0][2] as string,
+        base64: q.rows[0][3] as string,
+        uploaded: new Date(q.rows[0][4]),
+      } as DBReceiptSourceFile;
+    }
+    return null;
+  }
+
+  async getReceiptSourceFileByID(
+    id: string
+  ): Promise<DBReceiptSourceFile | null> {
+    const q = await this.query(
+      "SELECT * FROM receipt_source_files WHERE id = $1",
+      [id]
+    );
+    if (q.rows.length > 0) {
+      return {
+        id: q.rows[0][0] as string,
+        type: q.rows[0][1] as ReceiptSourceFileType,
+        md5: q.rows[0][2] as string,
+        base64: q.rows[0][3] as string,
+        uploaded: new Date(q.rows[0][4]),
+      } as DBReceiptSourceFile;
     }
     return null;
   }
