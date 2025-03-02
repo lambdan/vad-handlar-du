@@ -1,5 +1,8 @@
 # Parses a single Coop receipt PDF, and outputs it as JSON to stdout
 
+# requirements:
+# pip3 install pypdf==5.3.0 pytz==2025.1
+
 import os, json, pypdf
 import sys, datetime
 import pytz
