@@ -2,7 +2,7 @@
 
 1. Download all receipts as PDFs using the Coop app in the Scan & Pay section (this is the most annoying part)
 
-2. Fire up the web service using Docker: `docker compose -f docker-compose.yml up`
+2. Download the `docker-compose.yml` from this repo and fire it up: `docker compose -f docker-compose.yml up`
 
 3. Visit http://localhost:8000 in your favorite web browser, and import your PDFs
 
