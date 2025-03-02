@@ -4,16 +4,27 @@
 
     <div class="card-body">
       <p>Upload PDF here</p>
-      <form action="/upload" method="post" enctype="multipart/form-data">
+      <form id="uploadForm" method="post" enctype="multipart/form-data">
         <input type="file" name="pdf" class="form-control" multiple />
         <p>Receipt Type:</p>
-        <select name="receiptType" class="form-control">
-          <option value="PDF_COOP_V1" selected>Coop PDF V1</option>
+        <select name="receiptType" class="form-control" id="receiptType">
+          <option value="/upload_pdf_coop_v1" selected>Coop PDF V1</option>
+          <!--<option value="/other_endpoint">Other...</option>-->
         </select>
 
         <br />
         <button type="submit" class="btn btn-primary mt-3">Upload</button>
       </form>
+
+      <script>
+        document
+          .getElementById("uploadForm")
+          .addEventListener("submit", function (event) {
+            var form = event.target;
+            var receiptType = document.getElementById("receiptType").value;
+            form.action = receiptType;
+          });
+      </script>
     </div>
   </div>
 </div>

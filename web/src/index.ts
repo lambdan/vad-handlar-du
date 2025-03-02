@@ -7,6 +7,10 @@ import { ReceiptImport, ReceiptSourceFileType } from "./models";
 import { MultipartFile } from "@fastify/multipart";
 import { md5FromBuffer } from "./utils";
 import { Receipt } from "./receipt";
+import { pipeline } from "stream";
+import fs from "fs";
+import path from "path";
+import os from "os";
 
 const PROD = process.env.NODE_ENV === "production";
 
@@ -93,37 +97,23 @@ STATICS.fastify.get("/import", async (request, reply) => {
 });
 
 // POST route to get uploaded PDF file in form
-STATICS.fastify.post("/upload", async (request, reply) => {
-  const parts = request.parts();
-  let receiptType: ReceiptSourceFileType | null = null;
-  const files: MultipartFile[] = [];
-  for await (const part of parts) {
-    if (part.type === "file") {
-      files.push(part);
-    } else if (part.type === "field" && part.fieldname === "receiptType") {
-      receiptType = part.value as ReceiptSourceFileType;
-    } else {
-      logger.error("Unknown part type", part);
-    }
-  }
+STATICS.fastify.post("/upload_pdf_coop_v1", async (request, reply) => {
+  // Saves files to temp folder, gets deleted when request  is done
+  const files = await request.saveRequestFiles();
 
-  if (!receiptType) {
-    reply.code(400).send("No type specified");
-    return;
-  }
+  const receiptType = ReceiptSourceFileType.PDF_COOP_V1;
 
   const receipts = [];
   for (const f of files) {
-    const buffer = f.file.read();
+    const buffer = await fs.readFileSync(f.filepath);
     const md5 = await md5FromBuffer(buffer);
 
     let exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
     if (exists) {
-      reply.code(400).send("Receipt already uploaded");
-      return;
+      logger.log("Receipt source file already uploaded");
+      continue;
     }
 
-    logger.log("Inserting new receipt source file");
     const b64: string = buffer.toString("base64");
     await STATICS.pg.insertReceiptSourceFile(receiptType, md5, b64);
     exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
@@ -141,7 +131,11 @@ STATICS.fastify.post("/upload", async (request, reply) => {
     (r) => `<a href="/receipt/${r.id}">${r.id}</a><br>`
   );
 
-  reply.type("text/html").send(`Uploaded: <br> ${receiptLinks}`);
+  reply
+    .type("text/html")
+    .send(
+      `OK. <br> New receipts: <br> ${receiptLinks} <br><br> <a href="/receipts">Back to receipts</a>`
+    );
 });
 
 STATICS.fastify.get<{ Params: { id: string } }>(
