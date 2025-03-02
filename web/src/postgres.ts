@@ -98,6 +98,10 @@ export class Postgres {
     await this.query("DELETE FROM purchases WHERE receipt_id = $1", [id]);
   }
 
+  async deleteSourceFileByID(id: string) {
+    await this.query("DELETE FROM receipt_source_files WHERE id = $1", [id]);
+  }
+
   async importReceipt(receipt: ReceiptImport, replace: boolean) {
     if (!this.postgresClient) {
       await this.connect();

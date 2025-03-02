@@ -92,30 +92,6 @@ STATICS.fastify.get("/import", async (request, reply) => {
     .send(cacheAndReturn(request.url, await STATICS.web.importPage()));
 });
 
-/** Route for JSON uploads */
-STATICS.fastify.post<{ Body: { json: string; replace: boolean } }>(
-  "/import",
-  async (request, reply) => {
-    const { json, replace } = request.body;
-    let c: ReceiptImport[];
-
-    try {
-      c = JSON.parse(json);
-    } catch (error) {
-      reply
-        .code(400)
-        .type("text/html")
-        .send(`JSON parse failed.<br><br>${JSON.stringify(request.body)}`);
-      return;
-    }
-
-    for (const visit of c) {
-      await STATICS.pg.importReceipt(visit, replace);
-    }
-    reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
-  }
-);
-
 // POST route to get uploaded PDF file in form
 STATICS.fastify.post("/upload_pdf", async (request, reply) => {
   const parts = request.parts();
@@ -136,25 +112,36 @@ STATICS.fastify.post("/upload_pdf", async (request, reply) => {
     return;
   }
 
+  const receipts = [];
   for (const f of files) {
     const buffer = f.file.read();
     const md5 = await md5FromBuffer(buffer);
 
     let exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
-    if (!exists) {
-      logger.log("Inserting new receipt source file");
-      const b64: string = buffer.toString("base64");
-      await STATICS.pg.insertReceiptSourceFile(receiptType, md5, b64);
-      exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
-    }
-    if (!exists) {
-      return reply.code(500).send("Failed to upload receipt");
+    if (exists) {
+      reply.code(400).send("Receipt already uploaded");
+      return;
     }
 
-    await Receipt.insertFromSourceFile(exists.id, true);
+    logger.log("Inserting new receipt source file");
+    const b64: string = buffer.toString("base64");
+    await STATICS.pg.insertReceiptSourceFile(receiptType, md5, b64);
+    exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
+
+    if (!exists) {
+      reply.code(500).send("Upload failed?");
+      return;
+    }
+
+    const newReceipt = await Receipt.insertFromSourceFile(exists.id, false);
+    receipts.push(newReceipt);
   }
 
-  reply.type("text/html").send('OK. <br> <a href="/">Go back</a>');
+  const receiptLinks = receipts.map(
+    (r) => `<a href="/receipt/${r.id}">${r.id}</a><br>`
+  );
+
+  reply.type("text/html").send(`Uploaded: <br> ${receiptLinks}`);
 });
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -176,6 +163,85 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     reply
       .type("text/html")
       .send(cacheAndReturn(request.url, await STATICS.web.receiptPage(id)));
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/receipt/:id/download",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    if (!receipt) {
+      reply.code(404).send("Receipt not found");
+      return;
+    }
+
+    const src = await STATICS.pg.getReceiptSourceFileByID(
+      receipt.source_file_id
+    );
+
+    if (!src) {
+      reply.code(404).send("Source file not found");
+      return;
+    }
+
+    if (src.type === ReceiptSourceFileType.PDF_COOP_V1) {
+      reply.type("application/pdf").send(Buffer.from(src.base64, "base64"));
+    }
+
+    reply.code(500).send("Unknown source file type");
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/receipt/:id/reimport",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    if (!receipt) {
+      reply.code(404).send("Receipt not found");
+      return;
+    }
+
+    const src = await STATICS.pg.getReceiptSourceFileByID(
+      receipt.source_file_id
+    );
+
+    if (!src) {
+      reply.code(404).send("Source file not found");
+      return;
+    }
+
+    await Receipt.insertFromSourceFile(src.id, true);
+
+    reply.redirect(`/receipt/${id}`);
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/receipt/:id/delete",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    if (!receipt) {
+      reply.code(404).send("Receipt not found");
+      return;
+    }
+
+    const src = await STATICS.pg.getReceiptSourceFileByID(
+      receipt.source_file_id
+    );
+
+    await STATICS.pg.deleteReceipt(id);
+
+    if (src) {
+      await STATICS.pg.deleteSourceFileByID(src.id);
+    }
+
+    reply.redirect(`/receipts`);
   }
 );
 
