@@ -23,7 +23,7 @@ docker tag vad-handlar-du:latest davidsilverlind/vad-handlar-du:latest
 
 
 if [ "$PUSH" = "true" ]; then
-  if ! grep -q "\"version\": \"$VERSION\"" "web/package.json"; then
+  if ! grep -q "\"version\": \"$VERSION\"" "package.json"; then
     echo "ERROR: Version in package.json does not match argument... did you forget to update package.json?"
     exit 1
   fi
