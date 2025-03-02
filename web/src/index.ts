@@ -93,7 +93,7 @@ STATICS.fastify.get("/import", async (request, reply) => {
 });
 
 // POST route to get uploaded PDF file in form
-STATICS.fastify.post("/upload_pdf", async (request, reply) => {
+STATICS.fastify.post("/upload", async (request, reply) => {
   const parts = request.parts();
   let receiptType: ReceiptSourceFileType | null = null;
   const files: MultipartFile[] = [];

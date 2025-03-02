@@ -4,8 +4,8 @@
 
     <div class="card-body">
       <p>Upload PDF here</p>
-      <form action="/upload_pdf" method="post" enctype="multipart/form-data">
-        <input type="file" name="pdf" class="form-control" />
+      <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="pdf" class="form-control" multiple />
         <p>Receipt Type:</p>
         <select name="receiptType" class="form-control">
           <option value="PDF_COOP_V1" selected>Coop PDF V1</option>
