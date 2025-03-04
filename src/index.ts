@@ -8,6 +8,7 @@ import { md5FromBuffer } from "./utils";
 import { Receipt } from "./receipt";
 import fs from "fs";
 import { Product } from "./product";
+import { monthlySpending } from "./chart_data";
 
 export class STATICS {
   static fastify = Fastify({ logger: true });
@@ -212,6 +213,10 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     return reply.send(await prod2.chartUnitPriceOverTime());
   }
 );
+
+STATICS.fastify.get("/monthly_spending", async (request, reply) => {
+  return reply.send(await monthlySpending());
+});
 
 STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },

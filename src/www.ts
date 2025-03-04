@@ -4,6 +4,7 @@ import { Product } from "./product";
 import { STATICS } from ".";
 import { Logger } from "./logger";
 import { Receipt } from "./receipt";
+import { monthlySpending } from "./chart_data";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -73,6 +74,38 @@ export class www {
     }
 
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
+
+    const monthlyData = await monthlySpending();
+
+    const chart = `
+      <canvas id="myChart"></canvas>
+      <script>
+      document.addEventListener("DOMContentLoaded", function () {
+      if (typeof Chart === "undefined") {
+        console.error("Chart.js failed to load.");
+        return;
+      }
+
+      const data = ${JSON.stringify(monthlyData)};
+      const ctx = document.getElementById("myChart").getContext("2d");
+      new Chart(ctx, {
+        type: "bar",
+        data: {
+        labels: data.keys,
+        datasets: [{
+          label: "Spending",
+          data: data.values,
+        }]
+        },
+        options: {
+        responsive: true,
+        }
+      });
+      });
+      </script>`;
+
+    html = html.replaceAll("<%CHART%>", chart);
+
     return await this.constructHTML(html);
   }
 
