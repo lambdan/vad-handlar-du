@@ -27,19 +27,19 @@ const logger = new Logger("Index");
 
 // Routes
 STATICS.fastify.get("/", async (request, reply) => {
-  reply.type("text/html").send(await STATICS.web.frontPage());
+  return reply.type("text/html").send(await STATICS.web.frontPage());
 });
 
 STATICS.fastify.get("/products", async (request, reply) => {
-  reply.type("text/html").send(await STATICS.web.productsPage());
+  return reply.type("text/html").send(await STATICS.web.productsPage());
 });
 
 STATICS.fastify.get("/receipts", async (request, reply) => {
-  reply.type("text/html").send(await STATICS.web.receiptsPage());
+  return reply.type("text/html").send(await STATICS.web.receiptsPage());
 });
 
 STATICS.fastify.get("/import", async (request, reply) => {
-  reply.type("text/html").send(await STATICS.web.importPage());
+  return reply.type("text/html").send(await STATICS.web.importPage());
 });
 
 // POST route to get uploaded PDF file in form
@@ -65,8 +65,7 @@ STATICS.fastify.post("/upload_pdf_coop_v1", async (request, reply) => {
     exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
 
     if (!exists) {
-      reply.code(500).send("Upload failed?");
-      return;
+      return reply.code(500).send("Upload failed?");
     }
 
     const newReceipt = await Receipt.insertFromSourceFile(exists.id, false);
@@ -77,7 +76,7 @@ STATICS.fastify.post("/upload_pdf_coop_v1", async (request, reply) => {
     (r) => `<a href="/receipt/${r.id}">${r.id}</a><br>`
   );
 
-  reply
+  return reply
     .type("text/html")
     .send(
       `OK. <br> New receipts: <br> ${receiptLinks} <br><br> <a href="/receipts">Back to receipts</a>`
@@ -91,11 +90,10 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 
     const receipt = await STATICS.pg.fetchReceiptByID(id);
     if (!receipt) {
-      reply.code(404).send("Receipt not found");
-      return;
+      return reply.code(404).send("Receipt not found");
     }
 
-    reply.type("text/html").send(await STATICS.web.receiptPage(id));
+    return reply.type("text/html").send(await STATICS.web.receiptPage(id));
   }
 );
 
@@ -106,8 +104,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 
     const receipt = await STATICS.pg.fetchReceiptByID(id);
     if (!receipt) {
-      reply.code(404).send("Receipt not found");
-      return;
+      return reply.code(404).send("Receipt not found");
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
@@ -115,15 +112,16 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     );
 
     if (!src) {
-      reply.code(404).send("Source file not found");
-      return;
+      return reply.code(404).send("Source file not found");
     }
 
     if (src.type === ReceiptSourceFileType.PDF_COOP_V1) {
-      reply.type("application/pdf").send(Buffer.from(src.base64, "base64"));
+      return reply
+        .type("application/pdf")
+        .send(Buffer.from(src.base64, "base64"));
     }
 
-    reply.code(500).send("Unknown source file type");
+    return reply.code(500).send("Unknown source file type");
   }
 );
 
@@ -134,8 +132,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 
     const receipt = await STATICS.pg.fetchReceiptByID(id);
     if (!receipt) {
-      reply.code(404).send("Receipt not found");
-      return;
+      return reply.code(404).send("Receipt not found");
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
@@ -143,13 +140,12 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     );
 
     if (!src) {
-      reply.code(404).send("Source file not found");
-      return;
+      return reply.code(404).send("Source file not found");
     }
 
     await Receipt.insertFromSourceFile(src.id, true);
 
-    reply.redirect(`/receipt/${id}`);
+    return reply.redirect(`/receipt/${id}`);
   }
 );
 
@@ -160,8 +156,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 
     const receipt = await STATICS.pg.fetchReceiptByID(id);
     if (!receipt) {
-      reply.code(404).send("Receipt not found");
-      return;
+      return reply.code(404).send("Receipt not found");
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
@@ -174,7 +169,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
       await STATICS.pg.deleteSourceFileByID(src.id);
     }
 
-    reply.redirect(`/receipts`);
+    return reply.redirect(`/receipts`);
   }
 );
 
