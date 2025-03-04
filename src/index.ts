@@ -7,6 +7,7 @@ import { ReceiptSourceFileType } from "./models";
 import { md5FromBuffer } from "./utils";
 import { Receipt } from "./receipt";
 import fs from "fs";
+import { Product } from "./product";
 
 export class STATICS {
   static fastify = Fastify({ logger: true });
@@ -197,6 +198,18 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     const purchases = await STATICS.pg.fetchPurchasesByProductID(id);
 
     return reply.send({ product, purchases });
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/product/:id/chartUnitPriceOverTime",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const product = await STATICS.pg.fetchProductByID(id);
+    const prod2 = await Product.fromDB(product!);
+
+    return reply.send(await prod2.chartUnitPriceOverTime());
   }
 );
 

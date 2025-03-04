@@ -288,6 +288,8 @@ export class www {
     }
     html = html.replaceAll("<%STORES%>", stores);
 
+    html = html.replaceAll("<%CHART%>", product.getChart());
+
     return await this.constructHTML(html);
   }
 }

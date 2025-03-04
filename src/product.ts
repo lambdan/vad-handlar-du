@@ -15,6 +15,12 @@ export class Product {
   static async fromDB(db: DBProduct): Promise<Product> {
     const p = new Product(db.id, db.name, db.unit);
     p.purchases = await STATICS.pg.fetchPurchasesByProductID(db.id);
+
+    // sort dates
+    p.purchases.sort((a, b) => {
+      return a.datetime.getTime() - b.datetime.getTime();
+    });
+
     return p;
   }
 
@@ -97,5 +103,63 @@ export class Product {
       }
     }
     return stores;
+  }
+
+  async chartUnitPriceOverTime() {
+    const dates: Record<string, number> = {};
+    for (const p of this.purchases) {
+      dates[p.datetime.toISOString()] = p.unit_price;
+    }
+    return {
+      labels: Object.keys(dates),
+      values: Object.values(dates),
+    };
+  }
+
+  getChart(): string {
+    return `
+    <canvas id="myChart"></canvas>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+      fetch("/product/${this.id}/chartUnitPriceOverTime")
+        .then(res => res.json())
+        .then(data => {
+        const ctx = document.getElementById("myChart").getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+          labels: data.labels,
+          datasets: [{
+            label: 'Unit Price',
+            data: data.values,
+            borderWidth: 3, // Thicker lines
+            pointRadius: 5, // Bigger dots
+          }]
+          },
+          options: {
+          responsive: true,
+          plugins: {
+            legend: {
+            display: false
+            }
+          },
+          scales: {
+            x: {
+            type: 'time',
+            time: {
+              unit: 'month'
+            },
+            },
+            y: {
+              min: Math.max(Math.min(...data.values) - 2, 0),
+              max: Math.max(...data.values) + 2
+            }
+          }
+          }
+        });
+        })
+        .catch(err => console.error("Failed to load chart data:", err));
+      });
+    </script>`;
   }
 }
