@@ -178,10 +178,7 @@ export class Postgres {
   async fetchStoreByID(storeID: string): Promise<DBStore | null> {
     const q = await this.query("SELECT * FROM stores WHERE id = $1", [storeID]);
     if (q.rows.length > 0) {
-      return {
-        id: q.rows[0][0] as string,
-        name: q.rows[0][1] as string,
-      } as DBStore;
+      return new DBStore(q.rows[0][0] as string, q.rows[0][1] as string);
     }
     return null;
   }

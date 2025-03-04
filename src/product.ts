@@ -1,5 +1,5 @@
 import { STATICS } from ".";
-import { DBProduct, DBPurchase } from "./models";
+import { DBProduct, DBPurchase, DBStore } from "./models";
 
 export class Product {
   id: string;
@@ -50,24 +50,28 @@ export class Product {
     return last;
   }
 
-  lowestPrice(): number {
-    let lowest = Number.MAX_VALUE;
+  lowestPrice(): { price: number; date: Date } {
+    let price = Number.MAX_VALUE;
+    let date = new Date();
     for (const p of this.purchases) {
-      if (p.unit_price < lowest) {
-        lowest = p.unit_price;
+      if (p.unit_price < price) {
+        price = p.unit_price;
+        date = p.datetime;
       }
     }
-    return lowest;
+    return { price, date };
   }
 
-  highestPrice(): number {
-    let highest = 0;
+  highestPrice(): { price: number; date: Date } {
+    let price = 0;
+    let date = new Date();
     for (const p of this.purchases) {
-      if (p.unit_price > highest) {
-        highest = p.unit_price;
+      if (p.unit_price > price) {
+        price = p.unit_price;
+        date = p.datetime;
       }
     }
-    return highest;
+    return { price, date };
   }
 
   totalSpent(): number {
@@ -76,5 +80,22 @@ export class Product {
       total += p.total_price;
     }
     return total;
+  }
+
+  async storesPurchasedAt(): Promise<DBStore[]> {
+    const storeIDs = new Set<string>();
+    const stores = new Array<DBStore>();
+    for (const p of this.purchases) {
+      const receipt = await STATICS.pg.fetchReceiptByID(p.receipt_id);
+      const store = await STATICS.pg.fetchStoreByID(receipt!.store_id);
+      if (!store) {
+        continue;
+      }
+      if (store.id && !storeIDs.has(store.id)) {
+        stores.push(store);
+        storeIDs.add(store.id);
+      }
+    }
+    return stores;
   }
 }

@@ -13,9 +13,18 @@ export interface ReceiptImport {
   source_file_id: string;
 }
 
-export interface DBStore {
+export class DBStore {
   id: string;
   name: string;
+
+  constructor(id: string, name: string) {
+    this.id = id;
+    this.name = name;
+  }
+
+  equals(other: DBStore): boolean {
+    return this.id === other.id && this.name === other.name;
+  }
 }
 
 export interface DBReceipt {

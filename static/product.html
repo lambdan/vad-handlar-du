@@ -1,0 +1,36 @@
+<div class="container">
+  <div class="card mt-5">
+    <h1 class="card-header"><%PRODUCT_NAME%></h1>
+    <div class="card-body">
+      <div class="row">
+        <div class="col">
+          <ul>
+            <li>First purchased: <%FIRST_PURCHASED%></li>
+            <li>Last purchased: <%LAST_PURCHASED%></li>
+            <li>Times purchased: <%TIMES_PURCHASED%></li>
+            <li>Amount purchased: <%AMOUNT_PURCHASED%></li>
+          </ul>
+        </div>
+        <div class="col">
+          <ul>
+            <li>Money spent: <%TOTAL_SPENT%></li>
+            <li>Lowest price: <%LOWEST_PRICE%> (<%LOWEST_PRICE_DATE%>)</li>
+            <li>Highest price: <%HIGHEST_PRICE%> (<%HIGHEST_PRICE_DATE%>)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <p>Purchased at stores:</p>
+          <ul>
+            <%STORES%>
+          </ul>
+        </div>
+      </div>
+
+      <hr />
+      <%CHART%>
+    </div>
+  </div>
+</div>

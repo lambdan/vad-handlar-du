@@ -87,12 +87,6 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   "/receipt/:id",
   async (request, reply) => {
     const { id } = request.params;
-
-    const receipt = await STATICS.pg.fetchReceiptByID(id);
-    if (!receipt) {
-      return reply.code(404).send("Receipt not found");
-    }
-
     return reply.type("text/html").send(await STATICS.web.receiptPage(id));
   }
 );
@@ -182,6 +176,14 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     return reply.redirect(`/receipts`);
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/product/:id",
+  async (request, reply) => {
+    const { id } = request.params;
+    return reply.type("text/html").send(await STATICS.web.productPage(id));
   }
 );
 

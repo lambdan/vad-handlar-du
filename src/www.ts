@@ -134,8 +134,12 @@ export class www {
       TR += `<td sorttable_customkey="${product
         .lastPurchased()
         .getTime()}">${product.lastPurchased().toUTCString()}</td>`;
-      TR += `<td >${product.lowestPrice()}</td>`;
-      TR += `<td>${product.highestPrice()}</td>`;
+      TR += `<td title="${product.lowestPrice().date.toUTCString()}">${
+        product.lowestPrice().price
+      }</td>`;
+      TR += `<td title="${product.highestPrice().date.toUTCString()}">${
+        product.highestPrice().price
+      }</td>`;
     }
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%TOTAL_PURCHASES%>", totalPurchased.toFixed(0));
@@ -209,7 +213,7 @@ export class www {
       }
 
       TR += "<tr>";
-      TR += `<td>${product.name}</td>`;
+      TR += `<td><a href="/product/${product.id}">${product.name}</a></td>`;
       TR += `<td>${p.amount} ${product.unit}</td>`;
       TR += `<td>${p.unit_price.toFixed(2)}</td>`;
       TR += `<td>${p.total_price.toFixed(2)}</td>`;
@@ -219,6 +223,70 @@ export class www {
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
 
     html = html.replaceAll("<%TOTAL%>", receipt.total.toFixed(2));
+
+    return await this.constructHTML(html);
+  }
+
+  async productPage(id: string): Promise<string> {
+    const dbProduct = await STATICS.pg.fetchProductByID(id);
+    if (!dbProduct) {
+      return await this.errorPage("Receipt not found");
+    }
+
+    const product = await Product.fromDB(dbProduct);
+
+    let html = await readFile(
+      join(__dirname, "../static/product.html"),
+      "utf-8"
+    );
+
+    html = html.replaceAll("<%PRODUCT_NAME%>", product.name);
+    html = html.replaceAll(
+      "<%FIRST_PURCHASED%>",
+      product.firstPurchased().toUTCString()
+    );
+    html = html.replaceAll(
+      "<%LAST_PURCHASED%>",
+      product.lastPurchased().toUTCString()
+    );
+
+    html = html.replaceAll(
+      "<%TIMES_PURCHASED%>",
+      product.timesPurchased().toString()
+    );
+
+    html = html.replaceAll(
+      "<%AMOUNT_PURCHASED%>",
+      product.amountPurchased().toString() + " " + product.unit
+    );
+
+    html = html.replaceAll("<%TOTAL_SPENT%>", product.totalSpent().toFixed(2));
+
+    html = html.replaceAll(
+      "<%LOWEST_PRICE%>",
+      product.lowestPrice().price.toFixed(2)
+    );
+    html = html.replaceAll(
+      "<%LOWEST_PRICE_DATE%>",
+      product.lowestPrice().date.toUTCString()
+    );
+
+    html = html.replaceAll(
+      "<%HIGHEST_PRICE%>",
+      product.highestPrice().price.toFixed(2)
+    );
+
+    html = html.replaceAll(
+      "<%HIGHEST_PRICE_DATE%>",
+      product.highestPrice().date.toUTCString()
+    );
+
+    let stores = "";
+    const db_stores = await product.storesPurchasedAt();
+    for (const store of db_stores) {
+      stores += `<li>${store.name}</li>`;
+    }
+    html = html.replaceAll("<%STORES%>", stores);
 
     return await this.constructHTML(html);
   }
