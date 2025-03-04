@@ -105,7 +105,7 @@ export class Product {
     return stores;
   }
 
-  async chartUnitPriceOverTime() {
+  async chart_productCostOverTime(): Promise<string> {
     const data: {
       date: string;
       unit_price: number;
@@ -124,17 +124,11 @@ export class Product {
         color: db_store!.color(),
       });
     }
-    return data;
-  }
 
-  getChart(): string {
     return `
     <canvas id="myChart"></canvas>
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-      fetch("/product/${this.id}/chartUnitPriceOverTime")
-        .then(res => res.json())
-        .then(data => {
+        const data = ${JSON.stringify(data)}; 
           const ctx = document.getElementById("myChart").getContext("2d");
           const stores = [...new Set(data.map(d => d.store))];
           const datasets = stores.map(store => ({
@@ -167,9 +161,7 @@ export class Product {
               }
             }
           });
-        })
-        .catch(err => console.error("Failed to load chart data:", err));
-      });
+
     </script>`;
   }
 }

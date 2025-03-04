@@ -4,7 +4,7 @@ import { Product } from "./product";
 import { STATICS } from ".";
 import { Logger } from "./logger";
 import { Receipt } from "./receipt";
-import { monthlySpending } from "./chart_data";
+import { monthlySpending } from "./charts";
 
 const APP_VERSION = require("../package.json").version;
 
@@ -81,25 +81,20 @@ export class www {
       <canvas id="myChart"></canvas>
       <script>
       document.addEventListener("DOMContentLoaded", function () {
-      if (typeof Chart === "undefined") {
-        console.error("Chart.js failed to load.");
-        return;
-      }
-
-      const data = ${JSON.stringify(monthlyData)};
-      const ctx = document.getElementById("myChart").getContext("2d");
-      new Chart(ctx, {
-        type: "bar",
-        data: {
-        labels: data.keys,
-        datasets: [{
-          label: "Spending",
-          data: data.values,
-        }]
-        },
-        options: {
-        responsive: true,
-        }
+        const data = ${JSON.stringify(monthlyData)};
+        const ctx = document.getElementById("myChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+          labels: data.keys,
+          datasets: [{
+            label: "Spending",
+            data: data.values,
+          }]
+          },
+          options: {
+          responsive: true,
+          }
       });
       });
       </script>`;
@@ -314,7 +309,10 @@ export class www {
       product.highestPrice().date.toUTCString()
     );
 
-    html = html.replaceAll("<%CHART%>", product.getChart());
+    html = html.replaceAll(
+      "<%CHART%>",
+      await product.chart_productCostOverTime()
+    );
 
     return await this.constructHTML(html);
   }
