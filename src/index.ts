@@ -98,6 +98,18 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
+  "/receipt/:id/json",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const receipt = await STATICS.pg.fetchReceiptByID(id);
+    const purchases = await STATICS.pg.fetchPurchasesByReceiptID(id);
+
+    return reply.send({ receipt, purchases });
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
   "/receipt/:id/download",
   async (request, reply) => {
     const { id } = request.params;
@@ -170,6 +182,19 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     return reply.redirect(`/receipts`);
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
+  "/product/:id/json",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    const product = await STATICS.pg.fetchProductByID(id);
+
+    const purchases = await STATICS.pg.fetchPurchasesByProductID(id);
+
+    return reply.send({ product, purchases });
   }
 );
 

@@ -104,7 +104,9 @@ export class www {
     let totalSpent = 0;
     let totalPurchased = 0;
 
-    const products = await Promise.all(dbProducts.map((p) => Product.fromDB(p)));
+    const products = await Promise.all(
+      dbProducts.map((p) => Product.fromDB(p))
+    );
 
     products.sort((a, b) => {
       return b.lastPurchased().getTime() - a.lastPurchased().getTime();
@@ -115,7 +117,7 @@ export class www {
       totalPurchased += product.amountPurchased();
 
       TR += `<tr>`;
-      TR += `<td>${product.name}</td>`;
+      TR += `<td><a href="/product/${product.id}">${product.name}</a></td>`;
       TR += `<td>${product.timesPurchased()}</td>`;
 
       // Amount (decimals for weights)
