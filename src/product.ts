@@ -106,14 +106,25 @@ export class Product {
   }
 
   async chartUnitPriceOverTime() {
-    const dates: Record<string, number> = {};
+    const data: {
+      date: string;
+      unit_price: number;
+      store: string;
+      color: string;
+    }[] = [];
+
     for (const p of this.purchases) {
-      dates[p.datetime.toISOString()] = p.unit_price;
+      const db_receipt = await STATICS.pg.fetchReceiptByID(p.receipt_id)!;
+      const db_store = await STATICS.pg.fetchStoreByID(db_receipt!.store_id)!;
+
+      data.push({
+        date: p.datetime.toISOString(),
+        unit_price: p.unit_price,
+        store: db_store!.name,
+        color: db_store!.color(),
+      });
     }
-    return {
-      labels: Object.keys(dates),
-      values: Object.values(dates),
-    };
+    return data;
   }
 
   getChart(): string {
@@ -124,39 +135,38 @@ export class Product {
       fetch("/product/${this.id}/chartUnitPriceOverTime")
         .then(res => res.json())
         .then(data => {
-        const ctx = document.getElementById("myChart").getContext("2d");
-        new Chart(ctx, {
-          type: "line",
-          data: {
-          labels: data.labels,
-          datasets: [{
-            label: 'Unit Price',
-            data: data.values,
-            borderWidth: 3, // Thicker lines
-            pointRadius: 5, // Bigger dots
-          }]
-          },
-          options: {
-          responsive: true,
-          plugins: {
-            legend: {
-            display: false
-            }
-          },
-          scales: {
-            x: {
-            type: 'time',
-            time: {
-              unit: 'month'
+          const ctx = document.getElementById("myChart").getContext("2d");
+          const stores = [...new Set(data.map(d => d.store))];
+          const datasets = stores.map(store => ({
+            label: store,
+            data: data.filter(d => d.store === store).map(d => ({ x: d.date, y: d.unit_price })),
+            borderColor: data.find(d => d.store === store).color,
+            borderWidth: 4,
+            pointRadius: 6,
+          }));
+
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              datasets: datasets
             },
-            },
-            y: {
-              min: Math.max(Math.min(...data.values) - 2, 0),
-              max: Math.max(...data.values) + 2
+            options: {
+              responsive: true,
+              
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'month'
+                  },
+                },
+                y: {
+                  min: Math.max(Math.min(...data.map(d => d.unit_price)) - 2, 0),
+                  max: Math.max(...data.map(d => d.unit_price)) + 2
+                }
+              }
             }
-          }
-          }
-        });
+          });
         })
         .catch(err => console.error("Failed to load chart data:", err));
       });

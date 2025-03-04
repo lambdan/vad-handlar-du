@@ -1,3 +1,5 @@
+import { colorFromString } from "./utils";
+
 export interface ReceiptImport {
   datetime: string;
   id: string;
@@ -24,6 +26,10 @@ export class DBStore {
 
   equals(other: DBStore): boolean {
     return this.id === other.id && this.name === other.name;
+  }
+
+  color(): string {
+    return colorFromString(this.name);
   }
 }
 

@@ -281,13 +281,6 @@ export class www {
       product.highestPrice().date.toUTCString()
     );
 
-    let stores = "";
-    const db_stores = await product.storesPurchasedAt();
-    for (const store of db_stores) {
-      stores += `<li>${store.name}</li>`;
-    }
-    html = html.replaceAll("<%STORES%>", stores);
-
     html = html.replaceAll("<%CHART%>", product.getChart());
 
     return await this.constructHTML(html);
