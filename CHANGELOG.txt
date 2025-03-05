@@ -1,0 +1,12 @@
+v1.2.0
+- Individual product pages
+- Line chart for showing product price over time
+- Bar chart on front page for showing monthly spending
+
+v1.1.0
+- Can import PDFs directly in the web
+- Individual receipt pages
+
+v1.0.0
+- Initial release
+
