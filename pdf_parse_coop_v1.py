@@ -17,11 +17,10 @@ if not os.path.isfile(fullpath):
     print("File not found:", fullpath)
     sys.exit(1)
 
+reader = pypdf.PdfReader(fullpath)
+kvittoLines = reader.pages[0].extract_text().splitlines()
 
-def datetimeFromPDF(pdfPath) -> datetime:
-
-    reader = pypdf.PdfReader(pdfPath)
-    kvittoLines = reader.pages[0].extract_text().splitlines()
+def datetimeFromPDF() -> datetime:
     for line in kvittoLines:
         if "Datum:" in line:
 
@@ -41,30 +40,20 @@ def datetimeFromPDF(pdfPath) -> datetime:
             return dt
     raise Exception("No datetime found in PDF")
 
-def butikFromPDF(pdfPath) -> str:
-
-    reader = pypdf.PdfReader(pdfPath)
-    kvittoLines = reader.pages[0].extract_text().splitlines()
+def butikFromPDF() -> str:
     butik = kvittoLines[1].strip()
     assert(butik != "")
     assert(butik != None)
     return butik
 
-def kvittoNrFromPDF(pdfPath) -> str:
-
-    reader = pypdf.PdfReader(pdfPath)
-    kvittoLines = reader.pages[0].extract_text().splitlines()
+def kvittoNrFromPDF() -> str:
     for line in kvittoLines:
         if "Nr:" in line:
             nr = line.split(" Ka:")[0].replace("Nr:","").strip()
             return nr
     raise Exception("No kvittoNr found in PDF")
 
-def totalFromPDF(pdfPath) -> str:
-
-    reader = pypdf.PdfReader(pdfPath)
-    kvittoLines = reader.pages[0].extract_text().splitlines()
-
+def totalFromPDF() -> str:
     for line in kvittoLines:
         if "Total" in line:
             total = line.split("Total")[1].strip().replace("SEK", "").replace(",",".")
@@ -76,14 +65,13 @@ def totalFromPDF(pdfPath) -> str:
 
 unhandled = []
 
-reader = pypdf.PdfReader(fullpath)
-kvittoLines = reader.pages[0].extract_text().splitlines()
 
 
-dt = datetimeFromPDF(fullpath)
-butik = butikFromPDF(fullpath)
-nr = kvittoNrFromPDF(fullpath)
-total = totalFromPDF(fullpath)
+
+dt = datetimeFromPDF()
+butik = butikFromPDF()
+nr = kvittoNrFromPDF()
+total = totalFromPDF()
 
 # varor is between the dateline and total
 dateline = None
