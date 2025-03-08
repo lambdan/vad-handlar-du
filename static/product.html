@@ -25,9 +25,25 @@
 
       <hr />
 
+
       <a href="/product/<%PRODUCT_ID%>/delete" class="btn btn-danger">
         <i class="bi bi-trash"></i> Delete product
       </a>
+
+      
+      <div class="row">
+      <form action="/product/<%PRODUCT_ID%>/merge/" method="post">
+        <div class="form-group">
+          <label for="productToMerge">Merge in to:</label>
+          <select name="productToMerge" class="form-control" id="productToMerge">
+            <%PRODUCT_OPTIONS%>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Merge</button>
+      </div>
+
+
+
     </div>
   </div>
 </div>

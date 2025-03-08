@@ -53,11 +53,15 @@ def butikFromPDF() -> str:
 def kvittoNrFromPDF() -> str:
     dt = datetimeFromPDF()
     date = dt.strftime("%Y%m%d")
-
+    #print(kvittoLines)
+    orgnr = None
     for line in kvittoLines:
+        if "Org. nr:" in line:
+            orgnr = line.split("Org. nr:")[1].split()[0].strip()
         if "Kvittonr:" in line:
+            assert(orgnr != None)
             # hopefully you dont make two purchases within 1 minute at the same store...
-            return date + "_" + line.split("Kvittonr:")[1].split("Tid")[0].strip()
+            return orgnr + "-" + date + "-" + line.split("Kvittonr:")[1].split("Tid")[0].strip()
     raise Exception("No kvittoNr found in PDF")
 
 def totalFromPDF() -> str:
