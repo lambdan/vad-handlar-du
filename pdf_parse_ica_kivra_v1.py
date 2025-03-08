@@ -121,6 +121,8 @@ for vl in varor_lines:
         unitPrice = float(vl.split()[-4])
         artNr = vl.split()[-5]
         name = " ".join(vl.split()[:-5])
+        if name.startswith("*"):
+            name = name[1:]
     except:
         # its a discount item... too many edge cases... ignore for now :(
         #print(vl)

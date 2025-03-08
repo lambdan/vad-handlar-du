@@ -192,6 +192,18 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   }
 );
 
+STATICS.fastify.get("/receipts/reimport_all", async (request, reply) => {
+  const receipts = await STATICS.pg.fetchReceipts();
+  for (const r of receipts) {
+    const src = await STATICS.pg.getReceiptSourceFileByID(r.source_file_id);
+    if (!src) {
+      continue;
+    }
+    await Receipt.insertFromSourceFile(src.id, true);
+  }
+  return reply.redirect(`/receipts`);
+});
+
 STATICS.fastify.get<{ Params: { id: string } }>(
   "/receipt/:id/delete",
   async (request, reply) => {
