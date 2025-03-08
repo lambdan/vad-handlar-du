@@ -268,6 +268,7 @@ export class www {
       "utf-8"
     );
 
+    html = html.replaceAll("<%PRODUCT_ID%>", product.id);
     html = html.replaceAll("<%PRODUCT_NAME%>", product.name);
     html = html.replaceAll(
       "<%FIRST_PURCHASED%>",

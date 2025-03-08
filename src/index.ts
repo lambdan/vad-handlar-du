@@ -237,6 +237,17 @@ STATICS.fastify.get<{ Params: { id: string } }>(
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
+  "/product/:id/delete",
+  async (request, reply) => {
+    const { id } = request.params;
+
+    await STATICS.pg.deleteProduct(id);
+
+    return reply.redirect(`/products`);
+  }
+);
+
+STATICS.fastify.get<{ Params: { id: string } }>(
   "/product/:id/json",
   async (request, reply) => {
     const { id } = request.params;

@@ -247,6 +247,11 @@ export class Postgres {
     return q;
   }
 
+  async deleteProduct(id: string) {
+    await this.query("DELETE FROM products WHERE id = $1", [id]);
+    await this.query("DELETE FROM purchases WHERE product_id = $1", [id]);
+  }
+
   async fetchProductByID(productID: string): Promise<DBProduct | null> {
     const q = await this.query("SELECT * FROM products WHERE id = $1", [
       productID,
