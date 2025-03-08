@@ -258,7 +258,7 @@ export class www {
   async productPage(id: string): Promise<string> {
     const dbProduct = await STATICS.pg.fetchProductByID(id);
     if (!dbProduct) {
-      return await this.errorPage("Receipt not found");
+      return await this.errorPage("Product not found");
     }
 
     const product = await Product.fromDB(dbProduct);
@@ -313,6 +313,19 @@ export class www {
     html = html.replaceAll(
       "<%CHART%>",
       await product.chart_productCostOverTime()
+    );
+
+    const mergeCandiates = await STATICS.pg.fetchProducts();
+    mergeCandiates.sort((a, b) => {
+      return a.name.localeCompare(b.name);
+    });
+    html = html.replaceAll(
+      "<%PRODUCT_OPTIONS%>",
+      mergeCandiates
+        .map((p) => {
+          return `<option value="${p.id}">${p.name}</option>`;
+        })
+        .join("")
     );
 
     return await this.constructHTML(html);

@@ -247,6 +247,27 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   }
 );
 
+STATICS.fastify.get("/products/delete_empty", async (request, reply) => {
+  for (const p of await STATICS.pg.fetchProducts()) {
+    if ((await STATICS.pg.fetchPurchasesByProductID(p.id)).length === 0) {
+      await STATICS.pg.deleteProduct(p.id);
+    }
+  }
+
+  return reply.redirect(`/products`);
+});
+
+STATICS.fastify.get<{ Params: { id: string; target: string } }>(
+  "/product/:id/merge/:target",
+  async (request, reply) => {
+    const { id, target } = request.params;
+
+    await STATICS.pg.mergeProductIntoOther(id, target);
+
+    return reply.redirect(`/product/${target}`);
+  }
+);
+
 STATICS.fastify.get<{ Params: { id: string } }>(
   "/product/:id/json",
   async (request, reply) => {

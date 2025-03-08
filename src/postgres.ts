@@ -137,7 +137,7 @@ export class Postgres {
       let productInDB = await this.fetchProductByName(product.name);
       if (!productInDB) {
         await this.insertProduct(product.name, product.unit);
-        productInDB = await this.fetchProductByName(product.name);
+        productInDB = await this.fetchProductByName(product.name, true);
       }
 
       await this.insertPurchase({
@@ -252,6 +252,17 @@ export class Postgres {
     await this.query("DELETE FROM purchases WHERE product_id = $1", [id]);
   }
 
+  async mergeProductIntoOther(id: string, destinationID: string) {
+    const purchases = await this.fetchPurchasesByProductID(id);
+    for (const p of purchases) {
+      await this.query("UPDATE purchases SET product_id = $1 WHERE id = $2", [
+        destinationID,
+        p.id,
+      ]);
+    }
+    await this.deleteProduct(id);
+  }
+
   async fetchProductByID(productID: string): Promise<DBProduct | null> {
     const q = await this.query("SELECT * FROM products WHERE id = $1", [
       productID,
@@ -289,10 +300,22 @@ export class Postgres {
     return cleaned;
   }
 
-  async fetchProductByName(productName: string): Promise<DBProduct | null> {
-    const q = await this.query("SELECT * FROM products WHERE name = $1", [
-      productName,
-    ]);
+  async fetchProductByName(
+    productName: string,
+    caseSensitive = false
+  ): Promise<DBProduct | null> {
+    let q;
+    if (!caseSensitive) {
+      q = await this.query(
+        "SELECT * FROM products WHERE LOWER(name) = LOWER($1)",
+        [productName]
+      );
+    } else {
+      q = await this.query("SELECT * FROM products WHERE name = $1", [
+        productName,
+      ]);
+    }
+
     if (q.rows.length > 0) {
       return {
         id: q.rows[0][0] as string,
