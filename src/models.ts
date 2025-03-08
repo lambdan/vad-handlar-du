@@ -60,6 +60,7 @@ export interface DBPurchase {
 
 export enum ReceiptSourceFileType {
   PDF_COOP_V1 = "PDF_COOP_V1",
+  PDF_ICA_KIVRA_V1 = "PDF_ICA_KIVRA_V1",
 }
 
 export interface DBReceiptSourceFile {

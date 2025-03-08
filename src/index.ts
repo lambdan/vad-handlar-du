@@ -83,6 +83,47 @@ STATICS.fastify.post("/upload_pdf_coop_v1", async (request, reply) => {
     );
 });
 
+// POST route to get uploaded PDF file in form
+STATICS.fastify.post("/upload_pdf_ica_kivra_v1", async (request, reply) => {
+  // Saves files to temp folder, gets deleted when request  is done
+  const files = await request.saveRequestFiles();
+
+  const receiptType = ReceiptSourceFileType.PDF_ICA_KIVRA_V1;
+
+  const receipts = [];
+  for (const f of files) {
+    const buffer = await fs.readFileSync(f.filepath);
+    const md5 = await md5FromBuffer(buffer);
+
+    let exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
+    if (exists) {
+      logger.log("Receipt source file already uploaded");
+      continue;
+    }
+
+    const b64: string = buffer.toString("base64");
+    await STATICS.pg.insertReceiptSourceFile(receiptType, md5, b64);
+    exists = await STATICS.pg.getReceiptSourceFileByMD5(md5);
+
+    if (!exists) {
+      return reply.code(500).send("Upload failed?");
+    }
+
+    const newReceipt = await Receipt.insertFromSourceFile(exists.id, false);
+    receipts.push(newReceipt);
+  }
+
+  const receiptLinks = receipts.map(
+    (r) => `<a href="/receipt/${r.id}">${r.id}</a><br>`
+  );
+
+  return reply
+    .type("text/html")
+    .send(
+      `OK. <br> New receipts: <br> ${receiptLinks} <br><br> <a href="/receipts">Back to receipts</a>`
+    );
+});
+
 STATICS.fastify.get<{ Params: { id: string } }>(
   "/receipt/:id",
   async (request, reply) => {
@@ -121,13 +162,9 @@ STATICS.fastify.get<{ Params: { id: string } }>(
       return reply.code(404).send("Source file not found");
     }
 
-    if (src.type === ReceiptSourceFileType.PDF_COOP_V1) {
-      return reply
-        .type("application/pdf")
-        .send(Buffer.from(src.base64, "base64"));
-    }
-
-    return reply.code(500).send("Unknown source file type");
+    return reply
+      .type("application/pdf")
+      .send(Buffer.from(src.base64, "base64"));
   }
 );
 
