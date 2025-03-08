@@ -1,3 +1,11 @@
+v1.3.0
+- Can import ICA kvitton from Kivra (has limitations though, such as pant
+being included in drinks prices, and sale prices not being applied. Causes
+unfair comparisons with Coop :))
+- Can merge products into each other
+- Can delete products
+- Added button to re-import all receipts
+
 v1.2.0
 - Individual product pages
 - Line chart for showing product price over time
