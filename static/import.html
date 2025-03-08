@@ -8,22 +8,39 @@
         <input type="file" name="pdf" class="form-control" multiple />
         <br />
         <p>Receipt Type:</p>
-        <select name="receiptType" class="form-control" id="receiptType">
-          <option value="/upload?coop_v1">Coop PDF V1</option>
-          <option value="/upload?ica_kivra_1">ICA via Kivra V1</option>
-          <!--<option value="/other_endpoint">Other...</option>-->
-        </select>
+        <div>
+          <input
+            type="radio"
+            id="coop_v1"
+            name="receiptType"
+            value="/upload?coop_v1"
+            checked
+          />
+          <label for="coop_v1">Coop PDF V1</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="ica_kivra_1"
+            name="receiptType"
+            value="/upload?ica_kivra_1"
+          />
+          <label for="ica_kivra_1">ICA via Kivra V1</label>
+        </div>
 
         <br />
         <button type="submit" class="btn btn-primary mt-3">Upload</button>
       </form>
 
+      <br />
       <script>
         document
           .getElementById("uploadForm")
           .addEventListener("submit", function (event) {
             var form = event.target;
-            var receiptType = document.getElementById("receiptType").value;
+            var receiptType = document.querySelector(
+              'input[name="receiptType"]:checked'
+            ).value;
             form.action = receiptType;
           });
       </script>
