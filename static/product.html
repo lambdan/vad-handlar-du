@@ -25,25 +25,39 @@
 
       <hr />
 
-
       <a href="/product/<%PRODUCT_ID%>/delete" class="btn btn-danger">
         <i class="bi bi-trash"></i> Delete product
       </a>
 
-      
       <div class="row">
-      <form action="/product/<%PRODUCT_ID%>/merge/" method="post">
-        <div class="form-group">
-          <label for="productToMerge">Merge in to:</label>
-          <select name="productToMerge" class="form-control" id="productToMerge">
-            <%PRODUCT_OPTIONS%>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Merge</button>
+        <form
+          action="/product/<%PRODUCT_ID%>/merge"
+          method="get"
+          id="mergeForm"
+        >
+          <div class="form-group">
+            <label for="productToMerge">Merge in to:</label>
+            <select
+              name="otherProductId"
+              class="form-control"
+              id="productToMerge"
+              onchange="updateFormAction()"
+            >
+              <%PRODUCT_OPTIONS%>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Merge</button>
+        </form>
       </div>
 
-
-
+      <script>
+        function updateFormAction() {
+          var select = document.getElementById("productToMerge");
+          var form = document.getElementById("mergeForm");
+          var selectedValue = select.options[select.selectedIndex].value;
+          form.action = "/product/<%PRODUCT_ID%>/merge/" + selectedValue;
+        }
+      </script>
     </div>
   </div>
 </div>
