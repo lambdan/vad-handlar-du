@@ -23,5 +23,6 @@ COPY --from=build /build/static ./static
 
 # Copy in parser
 COPY pdf_parse_coop_v1.py /app/pdf_parse_coop_v1.py
+COPY pdf_parse_ica_kivra_v1.py /app/pdf_parse_ica_kivra_v1.py
 
 CMD [ "node", "dist/index.js" ]
