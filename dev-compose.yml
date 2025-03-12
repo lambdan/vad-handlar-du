@@ -2,14 +2,14 @@ version: "3.7"
 name: groceries
 
 volumes:
-  groceries-postgres:
+  groceries-postgres-dev:
 
 services:
   postgres:
     image: postgres:17.2
     restart: always
     volumes:
-      - groceries-postgres:/var/lib/postgresql/data
+      - groceries-postgres-dev:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: groceries
       POSTGRES_PASSWORD: groceries

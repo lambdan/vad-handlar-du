@@ -18,7 +18,9 @@ if not os.path.isfile(fullpath):
     sys.exit(1)
 
 reader = pypdf.PdfReader(fullpath)
-kvittoLines = reader.pages[0].extract_text().splitlines()
+kvittoLines = []
+for page in reader.pages:
+    kvittoLines += page.extract_text().splitlines()
 #print(kvittoLines)
 
 def datetimeFromPDF() -> datetime:
