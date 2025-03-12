@@ -1,3 +1,9 @@
+v1.3.1
+- Fixed some bugs with ICA importing (multi pages and products without unit
+price)
+- Added a Delete Everything button
+- Made the page after importing slightly prettier
+
 v1.3.0
 - Can import ICA kvitton from Kivra (has limitations though, such as pant
 being included in drinks prices, and sale prices not being applied. Causes
