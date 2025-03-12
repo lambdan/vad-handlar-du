@@ -42,7 +42,6 @@ STATICS.fastify.get("/import", async (request, reply) => {
   return reply.type("text/html").send(await STATICS.web.importPage());
 });
 
-
 // POST route to get uploaded PDF file in form
 STATICS.fastify.post("/upload", async (request, reply) => {
   // Saves files to temp folder, gets deleted when request  is done
@@ -77,15 +76,13 @@ STATICS.fastify.post("/upload", async (request, reply) => {
     receipts.push(newReceipt);
   }
 
-  const receiptLinks = receipts.map(
-    (r) => `<a href="/receipt/${r.id}">${r.id}</a><br>`
-  );
+  let receiptLinks = "";
+  for (const r of receipts) {
+    receiptLinks += `<li><a href="/receipt/${r.id}">${r.id}</a></li>`;
+  }
 
-  return reply
-    .type("text/html")
-    .send(
-      `OK. <br> New receipts: <br> ${receiptLinks} <br><br> <a href="/receipts">Back to receipts</a>`
-    );
+  const content = `<h1>OK</h1> <h2>New receipts:</h2> <ul> ${receiptLinks} </ul>`;
+  return reply.type("text/html").send(await STATICS.web.genericPage(content));
 });
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -244,6 +241,12 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     return reply.send({ product, purchases });
   }
 );
+
+STATICS.fastify.get("/reset_all", async (request, reply) => {
+  await STATICS.pg.resetAll();
+
+  return reply.redirect(`/`);
+});
 
 STATICS.fastify.listen(
   { port: +(process.env.PORT || 8000), host: "0.0.0.0" },

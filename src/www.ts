@@ -12,10 +12,7 @@ export class www {
   private logger = new Logger("www");
   constructor() {}
 
-  async constructHTML(
-    content: string,
-    title = "Playtime tracking using Discord"
-  ): Promise<string> {
+  async constructHTML(content: string): Promise<string> {
     let header = await readFile(
       join(__dirname, "../static/_header.html"),
       "utf-8"
@@ -113,11 +110,21 @@ export class www {
     return await this.constructHTML(html);
   }
 
+  async genericPage(htmlContent: string): Promise<string> {
+    let html = await readFile(
+      join(__dirname, "../static/generic.html"),
+      "utf-8"
+    );
+
+    html = html.replace("<%MSG%>", htmlContent);
+    return await this.constructHTML(html);
+  }
+
   async errorPage(msg: string, title = "Error"): Promise<string> {
     let html = await readFile(join(__dirname, "../static/error.html"), "utf-8");
     html = html.replace("<%TITLE%>", title);
     html = html.replace("<%MSG%>", msg);
-    return await this.constructHTML(html, "Error");
+    return await this.constructHTML(html);
   }
 
   async productsPage(): Promise<string> {

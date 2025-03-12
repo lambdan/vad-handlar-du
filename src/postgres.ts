@@ -44,7 +44,10 @@ export class Postgres {
     this.logger.log("Connecting to Postgres");
     this.postgresClient = await connect(this.config);
     this.logger.log("Connected!");
+    await this.createTables();
+  }
 
+  async createTables() {
     await this.query(
       `CREATE TABLE IF NOT EXISTS stores (
       id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -91,6 +94,15 @@ export class Postgres {
       uploaded TIMESTAMP
     )`
     );
+  }
+
+  async resetAll() {
+    await this.query("DROP TABLE IF EXISTS stores");
+    await this.query("DROP TABLE IF EXISTS receipts");
+    await this.query("DROP TABLE IF EXISTS products");
+    await this.query("DROP TABLE IF EXISTS purchases");
+    await this.query("DROP TABLE IF EXISTS receipt_source_files");
+    await this.createTables();
   }
 
   async deleteReceipt(id: string) {
