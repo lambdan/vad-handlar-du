@@ -322,6 +322,15 @@ export class www {
       await product.chart_productCostOverTime()
     );
 
+    let receiptList = "";
+    product.purchases.sort((a, b) => {
+      return b.datetime.getTime() - a.datetime.getTime();
+    });
+    for (const p of product.purchases) {
+      receiptList += `<li><a href="/receipt/${p.receipt_id}">${p.receipt_id}</a></li>`;
+    }
+    html = html.replaceAll("<%RECEIPT_LIST%>", receiptList);
+
     const mergeCandiates = await STATICS.pg.fetchProducts();
     mergeCandiates.sort((a, b) => {
       return a.name.localeCompare(b.name);
