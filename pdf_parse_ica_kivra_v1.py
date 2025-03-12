@@ -124,9 +124,13 @@ for vl in varor_lines:
         total = float(vl.split()[-1]) # last bit is total always
         unit = vl.split()[-2]
         amount = float(vl.split()[-3])
-        unitPrice = float(vl.split()[-4])
+        unitPrice = float(total / amount)
+
         artNr = vl.split()[-5]
-        name = " ".join(vl.split()[:-5])
+        if not artNr.isdigit():
+            artNr = vl.split()[-4]
+
+        name = vl.split(artNr)[0].strip()
         if name.startswith("*"):
             name = name[1:]
     except:
