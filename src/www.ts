@@ -304,7 +304,7 @@ export class www {
 
     html = html.replaceAll(
       "<%AMOUNT_PURCHASED%>",
-      product.amountPurchased().toString() + " " + product.unit
+      product.amountPurchased().toFixed(2) + " " + product.unit
     );
 
     html = html.replaceAll("<%TOTAL_SPENT%>", product.totalSpent().toFixed(2));
