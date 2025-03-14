@@ -169,12 +169,13 @@ export class www {
       TR += `<td sorttable_customkey="${product
         .lastPurchased()
         .getTime()}">${product.lastPurchased().toUTCString()}</td>`;
-      TR += `<td title="${product.lowestPrice().date.toUTCString()}">${
-        product.lowestPrice().price
-      }</td>`;
-      TR += `<td title="${product.highestPrice().date.toUTCString()}">${
-        product.highestPrice().price
-      }</td>`;
+      TR += `<td title="${product.lowestPrice().date.toUTCString()}">${product
+        .lowestPrice()
+        .price.toFixed(2)}</td>`;
+      TR += `<td title="${product.highestPrice().date.toUTCString()}">${product
+        .highestPrice()
+        .price.toFixed(2)}</td>`;
+      TR += `<td >${product.differenceLowestHighest().toFixed(2)}</td>`;
     }
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
     html = html.replaceAll("<%TOTAL_PURCHASES%>", totalPurchased.toFixed(0));

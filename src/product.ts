@@ -56,6 +56,7 @@ export class Product {
     return last;
   }
 
+  /* Returns when the product was the cheapest, and when */
   lowestPrice(): { price: number; date: Date } {
     let price = Number.MAX_VALUE;
     let date = new Date();
@@ -68,6 +69,7 @@ export class Product {
     return { price, date };
   }
 
+  /** Returns when the product was the most expensive, and when */
   highestPrice(): { price: number; date: Date } {
     let price = 0;
     let date = new Date();
@@ -78,6 +80,11 @@ export class Product {
       }
     }
     return { price, date };
+  }
+
+  /* Difference in lowest and highest price (i.e. biggest price increase) */
+  differenceLowestHighest(): number {
+    return this.highestPrice().price - this.lowestPrice().price;
   }
 
   totalSpent(): number {
