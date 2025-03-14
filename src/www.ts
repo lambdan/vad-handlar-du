@@ -59,6 +59,9 @@ export class www {
       groupedReceipts.get(ym)!.push(receipt);
     }
 
+    let totalSpent = 0;
+    let totalReceipts = 0;
+
     for (const [ym, receipts] of groupedReceipts) {
       TR += `<tr>`;
       TR += `<td>${ym}</td>`;
@@ -68,9 +71,14 @@ export class www {
         total += r.total;
       }
       TR += `<td>${total.toFixed(2)}</td>`;
+      TR += `</tr>`;
+      totalSpent += total;
+      totalReceipts += receipts.length;
     }
 
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(2));
+    html = html.replaceAll("<%TOTAL_RECEIPTS%>", totalReceipts.toString());
 
     const monthlyData = await monthlySpending();
 

@@ -1,5 +1,5 @@
 <div class="container">
-  <div class="card mt-5">
+  <div class="card">
     <h1 class="card-header">Monthly Spending</h1>
     <div class="card-body">
       <%CHART%>
@@ -17,6 +17,13 @@
         <tbody>
           <%TABLE_ROWS%>
         </tbody>
+        <tfoot>
+          <tr>
+            <th>Total:</th>
+            <th><%TOTAL_RECEIPTS%></th>
+            <th><%TOTAL_SPENT%></th>
+          </tr>
+        </tfoot>
       </table>
     </div>
   </div>

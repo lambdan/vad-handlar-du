@@ -1,10 +1,10 @@
 <div class="container">
   <div class="card">
     <h1 class="card-header text-center">Receipts</h1>
+    <h5 class="card-header text-center text-muted">
+      <%RECEIPT_COUNT%> receipts
+    </h5>
     <div class="card-body">
-      <p>Receipts: <%RECEIPT_COUNT%></p>
-      <p>Total 💸: <%TOTAL_SPENT%></p>
-
       <table class="sortable table table-hover">
         <thead>
           <tr>
@@ -17,6 +17,12 @@
         <tbody>
           <%TABLE_ROWS%>
         </tbody>
+        <tfoot>
+          <tr>
+            <th colspan="3">Total spent:</th>
+            <th><%TOTAL_SPENT%></th>
+          </tr>
+        </tfoot>
       </table>
       <hr />
       <a href="/receipts/reimport_all" class="btn btn-warning">
