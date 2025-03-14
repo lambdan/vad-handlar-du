@@ -5,6 +5,16 @@
       <%PRODUCT_COUNT%> products
     </h5>
     <div class="card-body">
+      <input
+        class="form-control"
+        id="searchInput"
+        type="text"
+        placeholder="Search..."
+        onkeyup="debouncedSearch()"
+      />
+
+      <hr />
+
       <table class="sortable table table-hover">
         <thead>
           <tr>
@@ -31,3 +41,34 @@
     </div>
   </div>
 </div>
+
+<script>
+  function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  function searchTable() {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toLowerCase();
+    const table = document.querySelector("table tbody");
+    const rows = table.getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+      const cells = rows[i].getElementsByTagName("td");
+      let match = false;
+      for (let j = 0; j < cells.length; j++) {
+        if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+          match = true;
+          break;
+        }
+      }
+      rows[i].style.display = match ? "" : "none";
+    }
+  }
+
+  const debouncedSearch = debounce(searchTable, 150);
+</script>
