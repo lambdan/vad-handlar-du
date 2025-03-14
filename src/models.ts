@@ -6,6 +6,7 @@ export interface ReceiptImport {
   store: string;
   total: number;
   products: {
+    sku: string;
     amount: number;
     name: string;
     totalPrice: number;
@@ -46,6 +47,7 @@ export interface DBProduct {
   id: string;
   name: string;
   unit: string;
+  sku: string;
 }
 
 export interface DBPurchase {

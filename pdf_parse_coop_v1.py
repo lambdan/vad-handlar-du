@@ -134,7 +134,10 @@ for vl in varor_lines:
         unit = "KG"
     else:
         raise Exception("Unknown unit", unit, fullpath)
-    visit["products"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": totalPrice, "unitPrice": unitPrice})
+    
+
+    sku = name.lower() # cursed but its all we got
+    visit["products"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": totalPrice, "unitPrice": unitPrice, "sku": sku})
 print(json.dumps(visit, default=str, ensure_ascii=False))
 sys.exit(0)
 

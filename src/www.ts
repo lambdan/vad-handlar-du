@@ -152,7 +152,7 @@ export class www {
       totalPurchased += product.amountPurchased();
 
       TR += `<tr>`;
-      TR += `<td><a href="/product/${product.id}">${product.name}</a></td>`;
+      TR += `<td><a href="/product/${product.id}">${product.name}</a><br><small class="text-muted">${product.sku}</small></td>`;
       TR += `<td>${product.timesPurchased()}</td>`;
 
       // Amount (decimals for weights)
@@ -250,6 +250,7 @@ export class www {
 
       TR += "<tr>";
       TR += `<td><a href="/product/${product.id}">${product.name}</a></td>`;
+      TR += `<td class="text-muted">${product.sku}</td>`;
       TR += `<td>${p.amount} ${product.unit}</td>`;
       TR += `<td>${p.unit_price.toFixed(2)}</td>`;
       TR += `<td>${p.total_price.toFixed(2)}</td>`;
@@ -278,6 +279,7 @@ export class www {
 
     html = html.replaceAll("<%PRODUCT_ID%>", product.id);
     html = html.replaceAll("<%PRODUCT_NAME%>", product.name);
+    html = html.replaceAll("<%SKU%>", product.sku);
     html = html.replaceAll(
       "<%FIRST_PURCHASED%>",
       product.firstPurchased().toUTCString()

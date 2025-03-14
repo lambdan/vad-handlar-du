@@ -70,7 +70,8 @@ export class Postgres {
       `CREATE TABLE IF NOT EXISTS products (
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       name TEXT,
-      unit TEXT
+      unit TEXT,
+      sku TEXT
     )`
     );
 
@@ -146,10 +147,10 @@ export class Postgres {
     });
 
     for (const product of receipt.products) {
-      let productInDB = await this.fetchProductByName(product.name);
+      let productInDB = await this.fetchProductBySKU(product.sku);
       if (!productInDB) {
-        await this.insertProduct(product.name, product.unit);
-        productInDB = await this.fetchProductByName(product.name, true);
+        await this.insertProduct(product.name, product.unit, product.sku);
+        productInDB = await this.fetchProductBySKU(product.sku);
       }
 
       await this.insertPurchase({
@@ -247,14 +248,15 @@ export class Postgres {
 
   async insertProduct(
     productName: string,
-    unit: string
+    unit: string,
+    sku: string
   ): Promise<ResultRecord<any>> {
     if (!this.postgresClient) {
       await this.connect();
     }
     const q = await this.query(
-      "INSERT INTO products (name, unit) VALUES ($1, $2)",
-      [productName, unit]
+      "INSERT INTO products (name, unit, sku) VALUES ($1, $2, $3)",
+      [productName, unit, sku]
     );
     return q;
   }
@@ -284,6 +286,7 @@ export class Postgres {
         id: q.rows[0][0] as string,
         name: q.rows[0][1] as string,
         unit: q.rows[0][2] as string,
+        sku: q.rows[0][3] as string,
       } as DBProduct;
     }
     return null;
@@ -297,6 +300,7 @@ export class Postgres {
           id: r[0] as string,
           name: r[1] as string,
           unit: r[2] as string,
+          sku: r[3] as string,
         } as DBProduct)
     );
     const cleaned: DBProduct[] = [];
@@ -310,6 +314,21 @@ export class Postgres {
       cleaned.push(p);
     }
     return cleaned;
+  }
+
+  async fetchProductBySKU(productSKU: string): Promise<DBProduct | null> {
+    const q = await this.query("SELECT * FROM products WHERE sku = $1", [
+      productSKU,
+    ]);
+    if (q.rows.length > 0) {
+      return {
+        id: q.rows[0][0] as string,
+        name: q.rows[0][1] as string,
+        unit: q.rows[0][2] as string,
+        sku: q.rows[0][3] as string,
+      } as DBProduct;
+    }
+    return null;
   }
 
   async fetchProductByName(
@@ -333,6 +352,7 @@ export class Postgres {
         id: q.rows[0][0] as string,
         name: q.rows[0][1] as string,
         unit: q.rows[0][2] as string,
+        sku: q.rows[0][3] as string,
       } as DBProduct;
     }
     return null;

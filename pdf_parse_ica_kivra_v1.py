@@ -149,7 +149,7 @@ for vl in varor_lines:
     if unit == "kg":
         unit = "KG"
 
-    visit["products"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": total, "unitPrice": unitPrice})
+    visit["products"].append({"name": name, "amount": amount, "unit": unit, "totalPrice": total, "unitPrice": unitPrice, "sku": artNr})
 print(json.dumps(visit, default=str, ensure_ascii=False))
 sys.exit(0)
 

@@ -3,17 +3,19 @@ import { DBProduct, DBPurchase, DBStore } from "./models";
 
 export class Product {
   id: string;
+  sku: string;
   name: string;
   unit: string;
   purchases: DBPurchase[] = [];
-  constructor(id: string, name: string, unit: string) {
+  constructor(id: string, name: string, unit: string, sku: string) {
     this.id = id;
     this.name = name;
     this.unit = unit;
+    this.sku = sku;
   }
 
   static async fromDB(db: DBProduct): Promise<Product> {
-    const p = new Product(db.id, db.name, db.unit);
+    const p = new Product(db.id, db.name, db.unit, db.sku);
     p.purchases = await STATICS.pg.fetchPurchasesByProductID(db.id);
 
     // sort dates
