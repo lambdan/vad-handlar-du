@@ -82,6 +82,10 @@ export class Product {
     return { price, date };
   }
 
+  averagePrice(): number {
+    return this.totalSpent() / this.amountPurchased();
+  }
+
   /* Difference in lowest and highest price (i.e. biggest price increase) */
   differenceLowestHighest(): number {
     return this.highestPrice().price - this.lowestPrice().price;
@@ -132,6 +136,9 @@ export class Product {
       });
     }
 
+    const yMin = Math.max(0, this.lowestPrice().price * 0.9);
+    const yMax = this.highestPrice().price * 1.1;
+
     return `
     <canvas id="myChart"></canvas>
     <script>
@@ -162,8 +169,8 @@ export class Product {
                   },
                 },
                 y: {
-                  min: Math.max(Math.min(...data.map(d => d.unit_price)) - 2, 0),
-                  max: Math.max(...data.map(d => d.unit_price)) + 2
+                  min: ${yMin},
+                  max: ${yMax}
                 }
               }
             }
