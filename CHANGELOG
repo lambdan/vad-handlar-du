@@ -1,3 +1,12 @@
+v1.4.0
+- Search box on products page
+- You can now select multiple products and merge or delete them
+- Get SKUs for products. Coop doesnt have them, so it just uses name.
+- Added toFixed(2) in some more places
+- Min and max on Y axis is not fixed to +- 2 anymore (made no sense for
+expensive products)
+- Some visual tweaks
+
 v1.3.2
 - Add receipts list to product pages
 
