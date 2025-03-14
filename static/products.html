@@ -18,6 +18,7 @@
       <table class="sortable table table-hover">
         <thead>
           <tr>
+            <th></th>
             <th>Name</th>
             <th>Times Purchased</th>
             <th>Amount Purchased</th>
@@ -33,42 +34,89 @@
         </tbody>
       </table>
 
-      <hr />
+      <div class="row p-1">
+        <div class="col">
+          <a href="#" class="btn btn-primary" onclick="mergeSelectedProducts()">
+            <i class="bi bi-intersect"></i> Merge selected products
+          </a>
+        </div>
+        <div class="col">
+          <a href="#" class="btn btn-danger" onclick="deleteSelectedProducts()">
+            <i class="bi bi-trash"></i> Delete selected products
+          </a>
+        </div>
 
-      <a href="/products/delete_empty" class="btn btn-danger">
-        <i class="bi bi-trash"></i> Delete empty products
-      </a>
+        <!-- <div class="col">
+          <div class="btn-group" role="group">
+            <a href="/products/delete_empty" class="btn btn-warning">
+              <i class="bi bi-trash2"></i> Delete empty products
+            </a>
+          </div>
+        </div> -->
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-  function debounce(func, wait) {
-    let timeout;
-    return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-  }
-
-  function searchTable() {
-    const input = document.getElementById("searchInput");
-    const filter = input.value.toLowerCase();
-    const table = document.querySelector("table tbody");
-    const rows = table.getElementsByTagName("tr");
-
-    for (let i = 0; i < rows.length; i++) {
-      const cells = rows[i].getElementsByTagName("td");
-      let match = false;
-      for (let j = 0; j < cells.length; j++) {
-        if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
-          match = true;
-          break;
-        }
-      }
-      rows[i].style.display = match ? "" : "none";
+  <script>
+    function getSelectedProducts() {
+      const checkboxes = document.querySelectorAll(
+        "input[type=checkbox]:checked"
+      );
+      const productIds = [];
+      checkboxes.forEach((checkbox) => productIds.push(checkbox.value));
+      return productIds;
     }
-  }
 
-  const debouncedSearch = debounce(searchTable, 150);
-</script>
+    // Get selected and add them to URL
+    function deleteSelectedProducts() {
+      const productIds = getSelectedProducts();
+      if (productIds.length === 0) {
+        alert("No products selected!");
+        return;
+      }
+      const url = `/products/delete?productIds=${productIds.join(",")}`;
+      window.location.href = url;
+    }
+
+    function mergeSelectedProducts() {
+      const productIds = getSelectedProducts();
+      if (productIds.length === 0) {
+        alert("No products selected!");
+        return;
+      }
+      const url = `/products/merge?productIds=${productIds.join(",")}`;
+      window.location.href = url;
+    }
+
+    // For searching:
+
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    function searchTable() {
+      const input = document.getElementById("searchInput");
+      const filter = input.value.toLowerCase();
+      const table = document.querySelector("table tbody");
+      const rows = table.getElementsByTagName("tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName("td");
+        let match = false;
+        for (let j = 0; j < cells.length; j++) {
+          if (cells[j].innerText.toLowerCase().indexOf(filter) > -1) {
+            match = true;
+            break;
+          }
+        }
+        rows[i].style.display = match ? "" : "none";
+      }
+    }
+
+    const debouncedSearch = debounce(searchTable, 150);
+  </script>
+</div>

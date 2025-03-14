@@ -208,6 +208,32 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   }
 );
 
+STATICS.fastify.get<{
+  Querystring: {
+    productIds: string;
+  };
+}>("/products/delete", async (request, reply) => {
+  const { productIds } = request.query;
+  const ids = productIds.split(",");
+  for (const id of ids) {
+    await STATICS.pg.deleteProduct(id);
+  }
+  return reply.redirect("/products");
+});
+
+STATICS.fastify.get<{
+  Querystring: {
+    productIds: string;
+  };
+}>("/products/merge", async (request, reply) => {
+  const { productIds } = request.query;
+  const ids = productIds.split(",");
+  for (let i = 1; i < ids.length; i++) {
+    await STATICS.pg.mergeProductIntoOther(ids[i], ids[0]); // Merge into first
+  }
+  return reply.redirect(`/product/${ids[0]}`);
+});
+
 STATICS.fastify.get("/products/delete_empty", async (request, reply) => {
   for (const p of await STATICS.pg.fetchProducts()) {
     if ((await STATICS.pg.fetchPurchasesByProductID(p.id)).length === 0) {

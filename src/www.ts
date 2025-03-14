@@ -160,6 +160,7 @@ export class www {
       totalPurchased += product.amountPurchased();
 
       TR += `<tr>`;
+      TR += `<td><input type="checkbox" name="selectedProductIds" value="${product.id}" /></td>`;
       TR += `<td><a href="/product/${product.id}">${product.name}</a><br><small class="text-muted">${product.sku}</small></td>`;
       TR += `<td>${product.timesPurchased()}</td>`;
 
