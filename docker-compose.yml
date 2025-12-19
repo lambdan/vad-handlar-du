@@ -15,7 +15,8 @@ services:
       - 5432:5432
 
   web:
-    image: vad-handlar-du:latest #ghcr.io/lambdan/vad-handlar-du:latest
+    #image: vad-handlar-du:latest #ghcr.io/lambdan/vad-handlar-du:latest
+    image: ghcr.io/lambdan/vad-handlar-du:latest
     restart: always
     init: true
     ports:
