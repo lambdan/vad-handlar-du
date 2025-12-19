@@ -15,12 +15,12 @@ export class www {
   async constructHTML(content: string): Promise<string> {
     let header = await readFile(
       join(__dirname, "../static/_header.html"),
-      "utf-8"
+      "utf-8",
     );
     //header = header.replace("<%TITLE%>", sanitizeHTML(title));
     let footer = await readFile(
       join(__dirname, "../static/_footer.html"),
-      "utf-8"
+      "utf-8",
     );
     footer = footer.replace("<%VERSION%>", APP_VERSION);
     return (
@@ -34,10 +34,11 @@ export class www {
   async frontPage(): Promise<string> {
     let html = await readFile(
       join(__dirname, "../static/frontpage.html"),
-      "utf-8"
+      "utf-8",
     );
 
     let TR = "";
+    let TRY = "";
 
     // Fetch all receipts, and group them by month
     const receipts = await STATICS.pg.fetchReceipts();
@@ -47,22 +48,27 @@ export class www {
       return b.date.getTime() - a.date.getTime();
     });
 
-    const groupedReceipts = new Map<string, Receipt[]>();
+    const monthGroupedReceipts = new Map<string, Receipt[]>();
+    const yearGroupedReceipts = new Map<string, Receipt[]>();
     for (const r of receipts) {
       const receipt = await Receipt.fromDB(r);
       const year = receipt.date.toISOString().split("-")[0];
+      if (!yearGroupedReceipts.has(year)) {
+        yearGroupedReceipts.set(year, []);
+      }
+      yearGroupedReceipts.get(year)!.push(receipt);
       const month = receipt.date.toISOString().split("-")[1];
       const ym = `${year}-${month}`;
-      if (!groupedReceipts.has(ym)) {
-        groupedReceipts.set(ym, []);
+      if (!monthGroupedReceipts.has(ym)) {
+        monthGroupedReceipts.set(ym, []);
       }
-      groupedReceipts.get(ym)!.push(receipt);
+      monthGroupedReceipts.get(ym)!.push(receipt);
     }
 
     let totalSpent = 0;
     let totalReceipts = 0;
 
-    for (const [ym, receipts] of groupedReceipts) {
+    for (const [ym, receipts] of monthGroupedReceipts) {
       TR += `<tr>`;
       TR += `<td>${ym}</td>`;
       TR += `<td>${receipts.length}</td>`;
@@ -76,7 +82,21 @@ export class www {
       totalReceipts += receipts.length;
     }
 
+    for (const [y, receipts] of yearGroupedReceipts) {
+      TRY += `<tr>`;
+      TRY += `<td>${y}</td>`;
+      TRY += `<td>${receipts.length}</td>`;
+      let total = 0;
+      for (const r of receipts) {
+        total += r.total;
+      }
+      TRY += `<td>${total.toFixed(2)}</td>`;
+      TRY += `</tr>`;
+    }
+
     html = html.replaceAll("<%TABLE_ROWS%>", TR);
+    html = html.replaceAll("<%TABLE_ROWS_YEAR%>", TRY);
+
     html = html.replaceAll("<%TOTAL_SPENT%>", totalSpent.toFixed(2));
     html = html.replaceAll("<%TOTAL_RECEIPTS%>", totalReceipts.toString());
 
@@ -112,7 +132,7 @@ export class www {
   async importPage(): Promise<string> {
     let html = await readFile(
       join(__dirname, "../static/import.html"),
-      "utf-8"
+      "utf-8",
     );
 
     return await this.constructHTML(html);
@@ -121,7 +141,7 @@ export class www {
   async genericPage(htmlContent: string): Promise<string> {
     let html = await readFile(
       join(__dirname, "../static/generic.html"),
-      "utf-8"
+      "utf-8",
     );
 
     html = html.replace("<%MSG%>", htmlContent);
@@ -138,7 +158,7 @@ export class www {
   async productsPage(): Promise<string> {
     let html = await readFile(
       join(__dirname, "../static/products.html"),
-      "utf-8"
+      "utf-8",
     );
 
     let TR = "";
@@ -148,7 +168,7 @@ export class www {
     let totalPurchased = 0;
 
     const products = await Promise.all(
-      dbProducts.map((p) => Product.fromDB(p))
+      dbProducts.map((p) => Product.fromDB(p)),
     );
 
     products.sort((a, b) => {
@@ -197,7 +217,7 @@ export class www {
   async receiptsPage(): Promise<string> {
     let html = await readFile(
       join(__dirname, "../static/receipts.html"),
-      "utf-8"
+      "utf-8",
     );
 
     let totalSpent = 0;
@@ -235,7 +255,7 @@ export class www {
 
     let html = await readFile(
       join(__dirname, "../static/receipt.html"),
-      "utf-8"
+      "utf-8",
     );
 
     const store = await STATICS.pg.fetchStoreByID(receipt.store_id);
@@ -283,7 +303,7 @@ export class www {
 
     let html = await readFile(
       join(__dirname, "../static/product.html"),
-      "utf-8"
+      "utf-8",
     );
 
     html = html.replaceAll("<%PRODUCT_ID%>", product.id);
@@ -291,47 +311,47 @@ export class www {
     html = html.replaceAll("<%SKU%>", product.sku);
     html = html.replaceAll(
       "<%FIRST_PURCHASED%>",
-      product.firstPurchased().toUTCString()
+      product.firstPurchased().toUTCString(),
     );
     html = html.replaceAll(
       "<%LAST_PURCHASED%>",
-      product.lastPurchased().toUTCString()
+      product.lastPurchased().toUTCString(),
     );
 
     html = html.replaceAll(
       "<%TIMES_PURCHASED%>",
-      product.timesPurchased().toString()
+      product.timesPurchased().toString(),
     );
 
     html = html.replaceAll(
       "<%AMOUNT_PURCHASED%>",
-      product.amountPurchased().toFixed(2) + " " + product.unit
+      product.amountPurchased().toFixed(2) + " " + product.unit,
     );
 
     html = html.replaceAll("<%TOTAL_SPENT%>", product.totalSpent().toFixed(2));
 
     html = html.replaceAll(
       "<%LOWEST_PRICE%>",
-      product.lowestPrice().price.toFixed(2)
+      product.lowestPrice().price.toFixed(2),
     );
     html = html.replaceAll(
       "<%LOWEST_PRICE_DATE%>",
-      product.lowestPrice().date.toUTCString()
+      product.lowestPrice().date.toUTCString(),
     );
 
     html = html.replaceAll(
       "<%HIGHEST_PRICE%>",
-      product.highestPrice().price.toFixed(2)
+      product.highestPrice().price.toFixed(2),
     );
 
     html = html.replaceAll(
       "<%HIGHEST_PRICE_DATE%>",
-      product.highestPrice().date.toUTCString()
+      product.highestPrice().date.toUTCString(),
     );
 
     html = html.replaceAll(
       "<%CHART%>",
-      await product.chart_productCostOverTime()
+      await product.chart_productCostOverTime(),
     );
 
     let receiptList = "";
@@ -353,7 +373,7 @@ export class www {
         .map((p) => {
           return `<option value="${p.id}">${p.name}</option>`;
         })
-        .join("")
+        .join(""),
     );
 
     return await this.constructHTML(html);
