@@ -52,6 +52,9 @@ STATICS.fastify.post("/upload", async (request, reply) => {
   if (request.url.includes("ica")) {
     receiptType = ReceiptSourceFileType.PDF_ICA_KIVRA_V1;
   }
+  if (request.url.includes("coop_v2")) {
+    receiptType = ReceiptSourceFileType.PDF_COOP_V2;
+  }
 
   const receipts = [];
   for (const f of files) {
@@ -90,7 +93,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   async (request, reply) => {
     const { id } = request.params;
     return reply.type("text/html").send(await STATICS.web.receiptPage(id));
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -102,7 +105,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     const purchases = await STATICS.pg.fetchPurchasesByReceiptID(id);
 
     return reply.send({ receipt, purchases });
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -116,7 +119,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
-      receipt.source_file_id
+      receipt.source_file_id,
     );
 
     if (!src) {
@@ -126,7 +129,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     return reply
       .type("application/pdf")
       .send(Buffer.from(src.base64, "base64"));
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -140,7 +143,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
-      receipt.source_file_id
+      receipt.source_file_id,
     );
 
     if (!src) {
@@ -150,7 +153,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     await Receipt.insertFromSourceFile(src.id, true);
 
     return reply.redirect(`/receipt/${id}`);
-  }
+  },
 );
 
 STATICS.fastify.get("/receipts/reimport_all", async (request, reply) => {
@@ -176,7 +179,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     const src = await STATICS.pg.getReceiptSourceFileByID(
-      receipt.source_file_id
+      receipt.source_file_id,
     );
 
     await STATICS.pg.deleteReceipt(id);
@@ -186,7 +189,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     }
 
     return reply.redirect(`/receipts`);
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -194,7 +197,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
   async (request, reply) => {
     const { id } = request.params;
     return reply.type("text/html").send(await STATICS.web.productPage(id));
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -205,7 +208,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     await STATICS.pg.deleteProduct(id);
 
     return reply.redirect(`/products`);
-  }
+  },
 );
 
 STATICS.fastify.get<{
@@ -252,7 +255,7 @@ STATICS.fastify.get<{ Params: { id: string; target: string } }>(
     await STATICS.pg.mergeProductIntoOther(id, target);
 
     return reply.redirect(`/product/${target}`);
-  }
+  },
 );
 
 STATICS.fastify.get<{ Params: { id: string } }>(
@@ -265,7 +268,7 @@ STATICS.fastify.get<{ Params: { id: string } }>(
     const purchases = await STATICS.pg.fetchPurchasesByProductID(id);
 
     return reply.send({ product, purchases });
-  }
+  },
 );
 
 STATICS.fastify.get("/reset_all", async (request, reply) => {
@@ -283,5 +286,5 @@ STATICS.fastify.listen(
       process.exit(1);
     }
     logger.log(`Server is running at ${address}`);
-  }
+  },
 );

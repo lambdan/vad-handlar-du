@@ -18,6 +18,17 @@
           />
           <label for="coop_v1">Coop PDF V1</label>
         </div>
+
+        <div>
+          <input
+            type="radio"
+            id="coop_v2"
+            name="receiptType"
+            value="/upload?coop_v2"
+            checked
+          />
+          <label for="coop_v2">Coop PDF V2</label>
+        </div>
         <div>
           <input
             type="radio"
@@ -39,7 +50,7 @@
           .addEventListener("submit", function (event) {
             var form = event.target;
             var receiptType = document.querySelector(
-              'input[name="receiptType"]:checked'
+              'input[name="receiptType"]:checked',
             ).value;
             form.action = receiptType;
           });

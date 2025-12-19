@@ -34,7 +34,7 @@ export class Receipt {
     date: Date,
     store: Store,
     sourcePdf: string,
-    total: number
+    total: number,
   ) {
     this.id = id;
     this.imported = imported;
@@ -56,7 +56,7 @@ export class Receipt {
       db.date,
       store,
       db.source_file_id,
-      db.total
+      db.total,
     );
     return r;
   }
@@ -64,7 +64,7 @@ export class Receipt {
   static async insertFromSourceFile(
     /** Source file ID */
     id: string,
-    replace: boolean
+    replace: boolean,
   ): Promise<Receipt> {
     const src = await STATICS.pg.getReceiptSourceFileByID(id);
     if (!src) {
@@ -95,6 +95,9 @@ export class Receipt {
         break;
       case ReceiptSourceFileType.PDF_ICA_KIVRA_V1:
         proc = spawn("python3", ["pdf_parse_ica_kivra_v1.py", pdf_path]);
+        break;
+      case ReceiptSourceFileType.PDF_COOP_V2:
+        proc = spawn("python3", ["pdf_parse_coop_v2.py", pdf_path]);
         break;
       default:
         throw new Error("Unsupported source file type");
