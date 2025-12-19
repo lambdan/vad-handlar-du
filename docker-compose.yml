@@ -1,15 +1,12 @@
 version: "3.7"
-name: groceries
-
-volumes:
-  groceries-postgres:
+name: vad-handlar-du
 
 services:
   postgres:
     image: postgres:17.2
     restart: always
     volumes:
-      - groceries-postgres:/var/lib/postgresql/data
+      - ./.postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: groceries
       POSTGRES_PASSWORD: groceries
@@ -18,11 +15,13 @@ services:
       - 5432:5432
 
   web:
-    image: ghcr.io/lambdan/vad-handlar-du:latest
+    image: vad-handlar-du:latest #ghcr.io/lambdan/vad-handlar-du:latest
     restart: always
     init: true
     ports:
       - 8000:8000
+    depends_on:
+      - postgres
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
